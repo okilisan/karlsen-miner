@@ -1,21 +1,12 @@
-# Kaspa-miner
-[![Build status](https://github.com/tmrlvi/kaspa-miner/workflows/ci/badge.svg)](https://github.com/tmrlvi/kaspa-miner/actions)
-[![Latest version](https://img.shields.io/crates/v/kaspa-miner.svg)](https://crates.io/crates/kaspa-miner)
-![License](https://img.shields.io/crates/l/kaspa-miner.svg)
-[![dependency status](https://deps.rs/repo/github/tmrlvi/kaspa-miner/status.svg)](https://deps.rs/repo/github/tmrlvi/kaspa-miner)
+# Karlsen-miner
 
-[![Discord](https://discordapp.com/api/guilds/599153230659846165/embed.png)](https://discord.gg/kS3SK5F36R)
-[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/Kaspaenglish)
+This is a modification of Kaspa Rust Miner for the Karlsen network
+please consider donate to the original dev :
+**Elichai**: `kaspa:qzvqtx5gkvl3tc54up6r8pk5mhuft9rtr0lvn624w9mtv4eqm9rvc9zfdmmpu`
+**HauntedCook**: `kaspa:qz4jdyu04hv4hpyy00pl6trzw4gllnhnwy62xattejv2vaj5r0p5quvns058f`
 
 
 ## Installation
-### From Sources
-Installing via `cargo install` is not supported for the latest version.
-
-The regular version is still available at
-```sh
-cargo install kaspa-miner
-```
 
 ### From Git Sources
 
@@ -23,7 +14,7 @@ If you are looking to build from the repository (for debug / extension), note th
 packages in the workspace. To compile a specific package, you run the following command or any subset of it
 
 ```sh
-git clone git@github.com:tmrlvi/kaspa-miner.git
+git clone https://github.com/karlsen-network/karlsen-miner
 cd kaspa-miner
 cargo build --release -p kaspa-miner -p kaspacuda -p kaspaopencl
 ```

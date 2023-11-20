@@ -4,7 +4,7 @@ use log::LevelFilter;
 use crate::Error;
 
 #[derive(Parser, Debug)]
-#[clap(name = "kaspa-miner", version, about = "A Kaspa high performance CPU miner", term_width = 0)]
+#[clap(name = "karlsen-miner", version, about = "A Karlsen high performance CPU miner", term_width = 0)]
 pub struct Opt {
     #[clap(short, long, help = "Enable debug logging level")]
     pub debug: bool,
@@ -98,7 +98,7 @@ impl Opt {
     }
 
     fn port(&mut self) -> u16 {
-        *self.port.get_or_insert(if self.testnet { 16211 } else { 16110 })
+        *self.port.get_or_insert(if self.testnet { 16211 } else { 42110 })
     }
 
     pub fn log_level(&self) -> LevelFilter {

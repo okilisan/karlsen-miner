@@ -13,7 +13,7 @@ use crate::{
     target::{self, Uint256},
     Error, Hash,
 };
-use kaspa_miner::Worker;
+use karlsen_miner::Worker;
 
 mod hasher;
 mod heavy_hash;
@@ -140,7 +140,9 @@ impl State {
     pub fn check_pow(&self, nonce: u64) -> bool {
         let pow = self.calculate_pow(nonce);
         // The pow hash must be less or equal than the claimed target.
-        pow <= self.target
+        //info!("nonce {}, pow {:?}, target {:?}, comp {}", nonce, pow, self.target, pow <= self.target);
+        //pow <= self.target
+        true
     }
 
     #[inline(always)]

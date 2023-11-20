@@ -78,7 +78,7 @@ extern "C" {
             // TODO: check endianity?
             uint256_t hash_;
             memcpy(input +  HASH_HEADER_SIZE, (uint8_t *)(&nonce), 8);
-            hash(powP, hash_.hash, input);
+            hashB3(powP, hash_.hash, input);
 
             //assert((rowId != 0) || (hashId != 0) );
             uchar4 packed_hash[QUARTER_MATRIX_SIZE] = {0};

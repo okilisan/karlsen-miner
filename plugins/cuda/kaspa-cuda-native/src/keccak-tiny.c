@@ -7,6 +7,7 @@
  * but not liability.
  */
 #define __STDC_WANT_LIB_EXT1__ 1
+#include "blake3_compact.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -102,6 +103,20 @@ __device__ __forceinline__ static void hash(
   // Squeeze output.
   #pragma unroll
   for (int i=0; i<4; i++) ((uint64_t *)out)[i] = ((uint64_t *)a)[i];
+
+}
+
+/** The sponge-based hash construction. **/
+__device__ __forceinline__ static void hashB3(
+                      const uint8_t initP[Plen],
+                       uint8_t* out,
+                       const uint8_t* in) {
+
+  blake3_hasher hasher;
+  blake3_hasher_init(&hasher);
+  blake3_hasher_update(&hasher, in, 80);
+  blake3_hasher_finalize(&hasher, out, BLAKE3_OUT_LEN);
+
 
 }
 

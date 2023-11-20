@@ -6,7 +6,7 @@ use std::error::Error as StdError;
 use std::ffi::OsStr;
 
 use clap::{App, FromArgMatches, IntoApp};
-use kaspa_miner::PluginManager;
+use karlsen_miner::PluginManager;
 use log::{error, info};
 use rand::{thread_rng, RngCore};
 use std::fs;
@@ -128,7 +128,7 @@ async fn main() -> Result<(), Error> {
     let mut path = current_exe().unwrap_or_default();
     path.pop(); // Getting the parent directory
     let plugins = filter_plugins(path.to_str().unwrap_or("."));
-    let (app, mut plugin_manager): (App, PluginManager) = kaspa_miner::load_plugins(Opt::into_app(), &plugins)?;
+    let (app, mut plugin_manager): (App, PluginManager) = karlsen_miner::load_plugins(Opt::into_app(), &plugins)?;
 
     let matches = app.get_matches();
 
@@ -137,7 +137,7 @@ async fn main() -> Result<(), Error> {
     opt.process()?;
     env_logger::builder().filter_level(opt.log_level()).parse_default_env().init();
     info!("=================================================================================");
-    info!("                 Kaspa-Miner GPU {}", env!("CARGO_PKG_VERSION"));
+    info!("                 karlsen-miner GPU {}", env!("CARGO_PKG_VERSION"));
     info!(" Mining for: {}", opt.mining_address);
     info!("=================================================================================");
     info!("Found plugins: {:?}", plugins);
