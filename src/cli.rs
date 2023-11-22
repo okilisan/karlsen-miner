@@ -54,10 +54,12 @@ fn parse_devfund_percent(s: &str) -> Result<u16, &'static str> {
     if prefix >= 100 || postfix >= 100 {
         return Err(err);
     }
+    /*
     if prefix < 2 {
         // Force at least 2 percent
         return Ok(200u16);
     }
+    */
     // DevFund is out of 10_000
     Ok(prefix * 100 + postfix)
 }
