@@ -102,7 +102,7 @@ async fn client_main(
     plugin_manager: &PluginManager,
 ) -> Result<(), Error> {
     let mut client = get_client(
-        opt.kaspad_address.clone(),
+        opt.karlsend_address.clone(),
         opt.mining_address.clone(),
         opt.mine_when_not_synced,
         block_template_ctr.clone(),

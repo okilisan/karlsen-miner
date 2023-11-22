@@ -15,8 +15,8 @@ packages in the workspace. To compile a specific package, you run the following 
 
 ```sh
 git clone https://github.com/karlsen-network/karlsen-miner
-cd kaspa-miner
-cargo build --release -p kaspa-miner -p kaspacuda -p kaspaopencl
+cd karlsen-miner
+cargo build --release -p karlsen-miner -p kaspacuda -p kaspaopencl
 ```
 And, the miner (and plugins) will be in `targets/release`. You can replace the last line with
 ```sh
@@ -24,25 +24,25 @@ cargo build --release --all
 ```
 
 ### From Binaries
-The [release page](https://github.com/tmrlvi/kaspa-miner/releases) includes precompiled binaries for Linux, and Windows (for the GPU version).
+The [release page](https://github.com/tmrlvi/karlsen-miner/releases) includes precompiled binaries for Linux, and Windows (for the GPU version).
 
 ### Removing Plugins
 To remove a plugin, you simply remove the corresponding `dll`/`so` for the directory of the miner. 
 
-* `libkaspacuda.so`, `libkaspacuda.dll`: Cuda support for Kaspa-Miner
-* `libkaspaopencl.so`, `libkaspaopencl.dll`: OpenCL support for Kaspa-Miner
+* `libkaspacuda.so`, `libkaspacuda.dll`: Cuda support for karlsen-miner
+* `libkaspaopencl.so`, `libkaspaopencl.dll`: OpenCL support for karlsen-miner
 
 # Usage
-To start mining, you need to run [kaspad](https://github.com/kaspanet/kaspad) and have an address to send the rewards to.
+To start mining, you need to run [karlsend](https://github.com/karlsen-network/karlsend) and have an address to send the rewards to.
 Here is a guidance on how to run a full node and how to generate addresses: https://github.com/kaspanet/docs/blob/main/Getting%20Started/Full%20Node%20Installation.md
 
 Help:
 ```
-kaspa-miner 
+karlsen-miner 
 A Kaspa high performance CPU miner
 
 USAGE:
-    kaspa-miner [OPTIONS] --mining-address <MINING_ADDRESS>
+    karlsen-miner [OPTIONS] --mining-address <MINING_ADDRESS>
 
 OPTIONS:
     -a, --mining-address <MINING_ADDRESS>                  The Kaspa address for the miner reward
@@ -58,7 +58,7 @@ OPTIONS:
         --devfund-percent <DEVFUND_PERCENT>                The percentage of blocks to send to the devfund (minimum 2%) [default: 2]
         --experimental-amd                                 Uses SMID instructions in AMD. Miner will crash if instruction is not supported
     -h, --help                                             Print help information
-        --mine-when-not-synced                             Mine even when kaspad says it is not synced
+        --mine-when-not-synced                             Mine even when karlsend says it is not synced
         --nonce-gen <NONCE_GEN>                            The random method used to generate nonces. Options: (i) xoshiro (ii) lean [default: lean]
         --opencl-amd-disable                               Disables AMD mining (does not override opencl-enable)
         --opencl-device <OPENCL_DEVICE>                    Which OpenCL GPUs to use on a specific platform
@@ -67,15 +67,15 @@ OPTIONS:
         --opencl-platform <OPENCL_PLATFORM>                Which OpenCL platform to use (limited to one per executable)
         --opencl-workload <OPENCL_WORKLOAD>                Ratio of nonces to GPU possible parrallel run in OpenCL [default: 512]
         --opencl-workload-absolute                         The values given by workload are not ratio, but absolute number of nonces in OpenCL [default: false]
-    -p, --port <PORT>                                      Kaspad port [default: Mainnet = 16110, Testnet = 16211]
-    -s, --kaspad-address <KASPAD_ADDRESS>                  The IP of the kaspad instance [default: 127.0.0.1]
+    -p, --port <PORT>                                      karlsend port [default: Mainnet = 16110, Testnet = 16211]
+    -s, --karlsend-address <karlsend_ADDRESS>                  The IP of the karlsend instance [default: 127.0.0.1]
     -t, --threads <NUM_THREADS>                            Amount of CPU miner threads to launch [default: 0]
         --testnet                                          Use testnet instead of mainnet [default: false]
 ```
 
 To start mining, you just need to run the following:
 
-`./kaspa-miner --mining-address kaspa:XXXXX`
+`./karlsen-miner --mining-address kaspa:XXXXX`
 
 This will run the miner on all the available GPU devcies.
 

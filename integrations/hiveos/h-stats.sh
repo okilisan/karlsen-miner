@@ -1,7 +1,7 @@
 ####################################################################################
 ###
-### kaspa-miner
-### https://github.com/tmrlvi/kaspa-miner/releases
+### karlsen-miner
+### https://github.com/tmrlvi/karlsen-miner/releases
 ###
 ### Hive integration: Merlin
 ###
@@ -13,7 +13,7 @@
 # MAIN script body
 #######################
 
-. /hive/miners/custom/kaspa-miner/h-manifest.conf
+. /hive/miners/custom/karlsen-miner/h-manifest.conf
 stats_raw=`cat $CUSTOM_LOG_BASENAME.log | grep -w "hashrate" | tail -n 1 `
 #echo $stats_raw
 

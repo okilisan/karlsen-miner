@@ -209,7 +209,7 @@ impl MinerManager {
                     return Ok(());
                 }
                 self.is_synced = false;
-                warn!("Kaspad is not synced, skipping current template");
+                warn!("karlsend is not synced, skipping current template");
                 None
             }
         };

@@ -1,17 +1,17 @@
 ####################################################################################
 ###
-### kaspa-miner
-### https://github.com/tmrlvi/kaspa-miner/releases
+### karlsen-miner
+### https://github.com/tmrlvi/karlsen-miner/releases
 ###
 ### Hive integration: Merlin
 ###
 ####################################################################################
 
 #!/usr/bin/env bash
-[[ -e /hive/custom ]] && . /hive/custom/kaspa-miner/h-manifest.conf
-[[ -e /hive/miners/custom ]] && . /hive/miners/custom/kaspa-miner/h-manifest.conf
+[[ -e /hive/custom ]] && . /hive/custom/karlsen-miner/h-manifest.conf
+[[ -e /hive/miners/custom ]] && . /hive/miners/custom/karlsen-miner/h-manifest.conf
 conf=""
-conf+=" --kaspad-address=$CUSTOM_URL --mining-address $CUSTOM_TEMPLATE"
+conf+=" --karlsend-address=$CUSTOM_URL --mining-address $CUSTOM_TEMPLATE"
 
 
 [[ ! -z $CUSTOM_USER_CONFIG ]] && conf+=" $CUSTOM_USER_CONFIG"

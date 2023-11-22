@@ -1,7 +1,7 @@
 ####################################################################################
 ###
-### kaspa-miner
-### https://github.com/tmrlvi/kaspa-miner/releases
+### karlsen-miner
+### https://github.com/tmrlvi/karlsen-miner/releases
 ###
 ### Hive integration: Merlin
 ###
