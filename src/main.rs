@@ -30,7 +30,9 @@ mod pow;
 mod target;
 mod watch;
 
-const WHITELIST: [&str; 4] = ["libkaspacuda", "libkaspaopencl", "kaspacuda", "kaspaopencl"];
+//remove the opencl plugin support for the moment
+//const WHITELIST: [&str; 4] = ["libkaspacuda", "libkaspaopencl", "kaspacuda", "kaspaopencl"];
+const WHITELIST: [&str; 2] = ["libkaspacuda", "kaspacuda"];
 
 pub mod proto {
     #![allow(clippy::derive_partial_eq_without_eq)]

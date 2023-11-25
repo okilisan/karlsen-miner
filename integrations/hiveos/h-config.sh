@@ -1,7 +1,7 @@
 ####################################################################################
 ###
 ### karlsen-miner
-### https://github.com/tmrlvi/karlsen-miner/releases
+### https://github.com/karlsen-network/karlsen-miner/releases
 ###
 ### Hive integration: Merlin
 ###
