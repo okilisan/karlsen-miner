@@ -164,11 +164,13 @@ impl State {
     }
 
     pub fn load_to_gpu(&self, gpu_work: &mut dyn Worker) {
+        info!("load_to_gpu: debug1 ");
         gpu_work.load_block_constants(&self.pow_hash_header, &self.matrix.0, &self.target.0);
     }
 
     #[inline(always)]
     pub fn pow_gpu(&self, gpu_work: &mut dyn Worker) {
+        info!("pow_gpu: debug1 ");
         gpu_work.calculate_hash(None, self.nonce_mask, self.nonce_fixed);
     }
 }

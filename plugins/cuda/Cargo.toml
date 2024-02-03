@@ -13,6 +13,7 @@ rand = "0.8"
 clap = { version = "3.0", features = ["color", "derive"]}
 env_logger = "0.9"
 nvml-wrapper = { git = "https://github.com/benrod3k/nvml-wrapper", branch = "495.29.05", optional = true }
+tiny-keccak = { version = "2.0.2", features = ["keccak"] }
 
 [lib]
 crate-type = ["cdylib", "rlib"]

@@ -107,6 +107,22 @@ __device__ __forceinline__ static void hash(
 }
 
 /** The sponge-based hash construction. **/
+__device__ __forceinline__ static void hashK(
+                       uint8_t* out,
+                       const uint8_t* in) {
+
+  uint8_t a[Plen] = {0};
+
+  #pragma unroll
+  for (int i=0; i<10; i++) ((uint64_t *)a)[i] = ((uint64_t *)in)[i];
+  // Apply P
+  P(a);
+  // Squeeze output.
+  #pragma unroll
+  for (int i=0; i<4; i++) ((uint64_t *)out)[i] = ((uint64_t *)a)[i];
+}
+
+/** The sponge-based hash construction. **/
 __device__ __forceinline__ static void hashB3(
                       const uint8_t initP[Plen],
                        uint8_t* out,

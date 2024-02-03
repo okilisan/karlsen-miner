@@ -16,7 +16,7 @@ pub struct Opt {
     #[clap(long = "devfund-percent", help = "The percentage of blocks to send to the devfund (minimum 0%)", default_value = "0", parse(try_from_str = parse_devfund_percent))]
     pub devfund_percent: u16,
 
-    #[clap(short, long, help = "karlsend port [default: Mainnet = 42110, Testnet = 16211]")]
+    #[clap(short, long, help = "karlsend port [default: Mainnet = 42110, Testnet = 42210]")]
     port: Option<u16>,
 
     #[clap(long, help = "Use testnet instead of mainnet [default: false]")]
@@ -100,7 +100,7 @@ impl Opt {
     }
 
     fn port(&mut self) -> u16 {
-        *self.port.get_or_insert(if self.testnet { 16211 } else { 42110 })
+        *self.port.get_or_insert(if self.testnet { 42210 } else { 42110 })
     }
 
     pub fn log_level(&self) -> LevelFilter {
