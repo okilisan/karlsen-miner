@@ -13,8 +13,12 @@ use std::ffi::CString;
 use std::sync::{Arc, Weak};
 use tiny_keccak::Hasher;
 use std::ops::BitXor;
+use memmap::{MmapOptions};
+use std::fs::{OpenOptions};
+//use std::io::Result;
+use std::path::Path;
 
-static BPS: f32 = 1.;
+static BPS: f32 = 0.5;
 
 static PTX_86: &str = include_str!("../resources/kaspa-cuda-sm86.ptx");
 static PTX_75: &str = include_str!("../resources/kaspa-cuda-sm75.ptx");
@@ -46,7 +50,9 @@ impl<'kernel> Kernel<'kernel> {
     }
 
     pub fn get_workload(&self) -> u32 {
-        self.block_size * self.grid_size
+        //self.block_size * self.grid_size
+        //we force workload to 1 for the moment
+        1
     }
 
     pub fn set_workload(&mut self, workload: u32) {
@@ -93,7 +99,7 @@ pub union hash512 {
     pub bytes: [u8; 64usize],
     pub str_: [::std::os::raw::c_char; 64usize],
 }
-
+/*
 impl hash512 {
     pub fn new() -> hash512 {
         // Initialize the union with one of its fields. Here, we choose to initialize it with bytes.
@@ -101,6 +107,7 @@ impl hash512 {
         unsafe { std::mem::transmute([0u8; 64usize]) }
     }
 }
+*/
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -112,12 +119,14 @@ pub union hash1024 {
     pub str_: [::std::os::raw::c_char; 128usize],
 }
 
+/*
 impl hash1024 {
     pub fn new() -> hash1024 {
         // Initialize the union with the bytes field set to zero.
         unsafe { std::mem::transmute([0u8; 128usize]) }
     }
 }
+*/
 
 const SIZE_U32: usize = std::mem::size_of::<u32>();
 const SIZE_U64: usize = std::mem::size_of::<u64>();
@@ -230,11 +239,15 @@ impl Hash1024 {
 
         hash
     }
+    fn from_bytes(bytes: &[u8]) -> Self {
+        let mut array = [0u8; 128];
+        array.copy_from_slice(bytes); // Ensure this does not panic by validating input length.
+        Hash1024(array)
+    }
 }
 
 const FNV_PRIME: u32 = 0x01000193;
 const FULL_DATASET_ITEM_PARENTS: u32 = 512;
-const NUM_DATASET_ACCESSES: i32 = 32;
 const LIGHT_CACHE_ROUNDS: i32 = 3;
 
 const LIGHT_CACHE_NUM_ITEMS: u32 = 1179641;
@@ -355,8 +368,8 @@ impl<'gpu> Worker for CudaGPUWorker<'gpu> {
                     random,
                     self.rand_state.as_device_ptr(),
                     self.final_nonce_buff.as_device_ptr(),
-                    self.cache2.as_device_ptr(),
                     self.dataset2.as_device_ptr(),
+                    self.cache2.as_device_ptr(),
                     //self.cache2_ptr.as_raw(),
                     //self.dataset2_ptr.as_raw(),
                 )
@@ -402,6 +415,7 @@ pub fn keccak(out: &mut [u8], data: &[u8]) {
     hasher.finalize(out);
 }
 
+/*
 fn xor_hash512(a: hash512, b: hash512) -> hash512 {
     unsafe {
         let mut result = hash512 { word64s: [0u64; 8] };
@@ -411,6 +425,7 @@ fn xor_hash512(a: hash512, b: hash512) -> hash512 {
         result
     }
 }
+*/
 
 fn build_light_cache(cache: &mut [Hash512]) {
     let mut item: Hash512 = Hash512::new();
@@ -523,41 +538,57 @@ fn calculate_dataset_item_1024(light_cache: &[Hash512], index: usize) -> Hash102
     Hash1024::from_512s(&mix0, &mix1)
 }
 
+fn save_dataset_to_file(full_dataset_unwrap: &[Hash1024], filename: &str) {
+    let total_size = full_dataset_unwrap.len() * std::mem::size_of::<Hash1024>();
+    let file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(filename)
+        .unwrap_or_else(|_| panic!("Failed to open or create the file"));
+
+    file.set_len(total_size as u64).expect("Failed to set file length");
+
+    let mut mmap = unsafe { MmapOptions::new().map_mut(&file).expect("Failed to memory-map the file") };
+
+    for (i, hash) in full_dataset_unwrap.iter().enumerate() {
+        let offset = i * std::mem::size_of::<Hash1024>();
+        mmap[offset..offset + std::mem::size_of::<Hash1024>()].copy_from_slice(hash.as_bytes());
+    }
+
+    mmap.flush().expect("Failed to flush memory map to disk");
+}
+
+fn read_dataset_from_file(filename: &str, full_dataset_unwrap: &mut Box<[Hash1024]>) {
+    if !Path::new(filename).exists() {
+        panic!("File does not exist");
+    }
+
+    let file = OpenOptions::new()
+        .read(true)
+        .open(filename)
+        .unwrap_or_else(|_| panic!("Failed to open the file for reading"));
+
+    let mmap = unsafe { MmapOptions::new().map(&file).expect("Failed to memory-map the file for reading") };
+    let item_size = std::mem::size_of::<Hash1024>();
+    if mmap.len() % item_size != 0 {
+        panic!("File size is not a multiple of Hash1024 size");
+    }
+
+    let num_items = mmap.len() / item_size;
+    if num_items != full_dataset_unwrap.len() {
+        panic!("Mismatch between file data size and provided buffer size");
+    }
+
+    for i in 0..num_items {
+        let start = i * item_size;
+        let end = start + item_size;
+        full_dataset_unwrap[i] = Hash1024::from_bytes(&mmap[start..end]);
+    }
+}
 
 impl<'gpu> CudaGPUWorker<'gpu> {
-
-    /*
-    pub fn build_light_cache(cache: &mut [hash512]) {
-        let mut item: hash512 = hash512::new();
-        keccak(&mut item.bytes, &SEED.bytes);
-        cache[0] = item;
-    
-        for cache_item in cache
-            .iter_mut()
-            .take(LIGHT_CACHE_NUM_ITEMS as usize)
-            .skip(1)
-        {
-            keccak_in_place(&mut item.bytes);
-            *cache_item = item;
-        }
-    
-        for _ in 0..LIGHT_CACHE_ROUNDS {
-            for i in 0..LIGHT_CACHE_NUM_ITEMS {
-                // First index: 4 first bytes of the item as little-endian integer
-                let t: u32 = cache[i as usize].word32s[0];
-                let v: u32 = t % LIGHT_CACHE_NUM_ITEMS;
-    
-                // Second index
-                let w: u32 =
-                    (LIGHT_CACHE_NUM_ITEMS.wrapping_add(i.wrapping_sub(1))) % LIGHT_CACHE_NUM_ITEMS;
-    
-                //let x = &cache[v as usize].bytes ^ &cache[w as usize].bytes;
-                let x = xor_hash512(cache[v as usize], cache[w as usize]);
-                keccak(&mut cache[i as usize].bytes, &x.bytes);
-            }
-        }
-    }
-    */
 
     pub fn new(
         device_id: u32,
@@ -575,38 +606,35 @@ impl<'gpu> CudaGPUWorker<'gpu> {
         let _context = Context::new(device)?;
         _context.set_flags(sync_flag)?;
 
-        //let _cache = DeviceBuffer::<hash512>::zeroed(FULL_DATASET_NUM_ITEMS)?;
-        //let mut cache = DeviceBuffer::from_slice(&vec![Hash512::new(); LIGHT_CACHE_NUM_ITEMS as usize])?;
-        
-        //let cache = DeviceBuffer::from_slice(&vec![hash512 { bytes: [0; 64] }; LIGHT_CACHE_NUM_ITEMS as usize])?;
-        //info!(">>>>>>>>>>>>>>>>>>>>>>>>> cache size : {}", cache.len());
-        //let dataset = DeviceBuffer::from_slice(&vec![hash1024 { bytes: [0; 128] }; FULL_DATASET_NUM_ITEMS as usize])?;
-        //let mut dataset = DeviceBuffer::from_slice(&vec![Hash1024::new(); FULL_DATASET_NUM_ITEMS as usize])?;
-
-        //info!(">>>>>>>>>>>>>>>>>>>>>>>>> dataset size : {}", dataset.len());
-
         let mut light_cache =
             vec![Hash512::new(); LIGHT_CACHE_NUM_ITEMS as usize].into_boxed_slice();
         build_light_cache(&mut light_cache);
         //cache.copy_from(&light_cache)?;
-        let cache2 = DeviceBuffer::from_slice(&light_cache)?;
-        // Obtention du pointeur de périphérique
-        //let cache2_ptr: DevicePointer<Hash512> = cache2.as_device_ptr();
-        // Conversion du pointeur de périphérique en pointeur brut pour l'appel FFI
-        //let raw_device_ptr = device_ptr.as_raw();
+        let cache2 = DeviceBuffer::from_slice(&light_cache).unwrap();
+
+        info!("light_cache[10] : {:x?}", &light_cache[10].as_bytes());
+        info!("light_cache[42] : {:x?}", &light_cache[42].as_bytes());
 
         let mut full_dataset = 
             Some(vec![Hash1024::new(); FULL_DATASET_NUM_ITEMS as usize].into_boxed_slice());
         let full_dataset_uwrap = full_dataset.as_mut().unwrap();
         //build_dataset_segment(&mut full_dataset_uwrap[0..], &light_cache, 0);
-        prebuild_dataset(full_dataset_uwrap, &light_cache, 8);
+        if Path::new("dataset.bin").exists() {
+            read_dataset_from_file("dataset.bin", full_dataset_uwrap);
+        } else {
+            prebuild_dataset(full_dataset_uwrap, &light_cache, 8);
+            //save_dataset_to_file(&full_dataset_uwrap, "hashes.dat")
+            save_dataset_to_file(full_dataset_uwrap, "dataset.bin");
+        }
 
-        info!("dataset[10] : {:?}", full_dataset_uwrap[10].as_bytes());
-        info!("dataset[42] : {:?}", full_dataset_uwrap[42].as_bytes());
-        info!("dataset[12345] : {:?}", full_dataset_uwrap[12345].as_bytes());
+
+
+        info!("dataset[10] : {:x?}", full_dataset_uwrap[10].as_bytes());
+        info!("dataset[42] : {:x?}", full_dataset_uwrap[42].as_bytes());
+        info!("dataset[12345] : {:x?}", full_dataset_uwrap[12345].as_bytes());
 
         //dataset.copy_from(&full_dataset_uwrap)?;
-        let dataset2 = DeviceBuffer::from_slice(full_dataset_uwrap)?;
+        let dataset2 = DeviceBuffer::from_slice(full_dataset_uwrap).unwrap();
         //let dataset2_ptr: DevicePointer<Hash1024> = dataset2.as_device_ptr();
 
         let major = device.get_attribute(DeviceAttribute::ComputeCapabilityMajor)?;

@@ -69,7 +69,7 @@ typedef struct item_state
             SHA3_512(mix.uint2s);
 	    	return mix; 
 	    }
-	};
+	} item_state;
 
 
 
@@ -178,10 +178,26 @@ DEV_INLINE void hashFish(
             uint8_t* out,
             const uint8_t* in) {
 		hash512 seed; 
-        *seed.bytes = *in;
+        //*seed.bytes = *in;
+		memset(seed.bytes, 0, 64);
+		memcpy(seed.bytes, in, 32);
+		/*
+		if (threadIdx.x == 0 && blockIdx.x == 0) {
+			printHash("hashFish-1 in is : ", in, 32);
+			printHash("hashFish-1 in is : ", seed.bytes, 32);
+		}
+		*/
 		//printf("hashFish debug 1");
 		const hash256 mix_hash = fishhash_kernel(*ctx, seed);
-	    *out = *mix_hash.bytes;
+	    //*out = *mix_hash.bytes;
+		
+		memcpy(out, mix_hash.bytes, 32);
+		/*
+		if (threadIdx.x == 0 && blockIdx.x == 0) {
+			printHash("hashFish-2 in is : ", mix_hash.bytes, 32);
+			printHash("hashFish-2 in is : ", out, 32);
+		}
+		*/
 	}
 
 
@@ -193,137 +209,3 @@ DEV_INLINE hash512 bitwise_xor(const hash512& x, const hash512& y) noexcept {
 		return z;
 	}
 
-
-/*
-void build_light_cache( hash512 cache[], int num_items, const hash256& seed) noexcept {
-		hash512 item;
-		//keccak(item.word64s, 512, seed.bytes, sizeof(seed));
-        copy(item.uint2s, seed.uint2s, sizeof(seed.uint2s));
-        SHA3_512(item.uint2s);
-		cache[0] = item;
-		
-		for (int i = 1; i < num_items; ++i) {
-			//keccak(item.word64s, 512, item.bytes, sizeof(item));
-            SHA3_512(item.uint2s);
-			cache[i] = item;
-		}
-
-		for (int q = 0; q < light_cache_rounds; ++q) {
-			for (int i = 0; i < num_items; ++i) {
-			    const uint32_t index_limit = static_cast<uint32_t>(num_items);
-
-			    // First index: 4 first bytes of the item as little-endian integer.
-			    const uint32_t t = cache[i].word32s[0];
-			    const uint32_t v = t % index_limit;
-
-			    // Second index.
-			    const uint32_t w = static_cast<uint32_t>(num_items + (i - 1)) % index_limit;
-			    const hash512 x = bitwise_xor(cache[v], cache[w]);			    
-				//keccak(cache[i].word64s, 512, x.bytes, sizeof(x));
-                copy(cache[i].uint2s, x.uint2s, sizeof(x.uint2s));
-                SHA3_512(cache[i].uint2s);
-			}
-		}
-	}
-
-	void build_dataset_segment(fishhash_context * ctx, uint32_t start, uint32_t end) {
-		for (uint32_t i=start; i<end; ++i) {
-			ctx -> full_dataset[i] = calculate_dataset_item_1024(*ctx, i);
-		}
-	}	
-
-	void prebuild_dataset(fishhash_context * ctx, uint32_t numThreads) noexcept {
-		// If the context is not initialized as full context, return to avoid segmentation faults
-		if (ctx->full_dataset == NULL) return;
-	
-		if (numThreads > 1) {
-    			uint32_t batch_size = ctx->full_dataset_num_items / numThreads;
-    			
-    			// Launch worker threads
-    			std::vector< std::thread > threads(numThreads);
-    			for(unsigned i = 0; i < numThreads; ++i) {
-            			int start = i * batch_size;
-            			int end = i == (numThreads-1) ? ctx->full_dataset_num_items  : (i+1) * batch_size;
-            			 
-            			threads[i] = std::thread(build_dataset_segment, ctx, start, end);
-        		}
-    			
-    			// Join them in for completion
-    			for(unsigned i = 0; i < numThreads; ++i) {
-    				threads[i].join();
-    			}
-		} else {
-			build_dataset_segment(ctx, 0, ctx->full_dataset_num_items);
-		}
-		
-	}
-*/
-
-
-
-// ==========================================================================
-
-
-/*
-
-__global__ void ethash_calculate_dag_item(uint32_t start)
-{
-    uint32_t const node_index = start + blockIdx.x * blockDim.x + threadIdx.x;
-    if (((node_index >> 1) & (~1)) >= d_dag_size)
-        return;
-    union {
-       hash128_t dag_node;
-       uint2 dag_node_mem[25];
-    };
-    copy(dag_node.uint4s, d_light[node_index % d_light_size].uint4s, 4);
-    dag_node.words[0] ^= node_index;
-    SHA3_512(dag_node_mem);
-
-    const int thread_id = threadIdx.x & 3;
-
-    for (uint32_t i = 0; i != ETHASH_DATASET_PARENTS; ++i)
-    {
-        uint32_t parent_index = fnv(node_index ^ i, dag_node.words[i % NODE_WORDS]) % d_light_size;
-        for (uint32_t t = 0; t < 4; t++)
-        {
-            uint32_t shuffle_index = SHFL(parent_index, t, 4);
-
-            uint4 p4 = d_light[shuffle_index].uint4s[thread_id];
-            for (int w = 0; w < 4; w++)
-            {
-                uint4 s4 = make_uint4(SHFL(p4.x, w, 4), SHFL(p4.y, w, 4), SHFL(p4.z, w, 4), SHFL(p4.w, w, 4));
-                if (t == thread_id)
-                {
-                    dag_node.uint4s[w] = fnv4(dag_node.uint4s[w], s4);
-                }
-            }
-        }
-    }
-    SHA3_512(dag_node_mem);
-    hash64_t* dag_nodes = (hash64_t*)d_dag;
-    copy(dag_nodes[node_index].uint4s, dag_node.uint4s, 4);
-}
-
-void ethash_generate_dag(
-    uint64_t dag_size, uint32_t gridSize, uint32_t blockSize, cudaStream_t stream)
-{
-    const uint32_t work = (uint32_t)(dag_size / sizeof(hash64_t));
-    const uint32_t run = gridSize * blockSize;
-
-    uint32_t base;
-    for (base = 0; base <= work - run; base += run)
-    {
-        ethash_calculate_dag_item<<<gridSize, blockSize, 0, stream>>>(base);
-        CUDA_SAFE_CALL(cudaDeviceSynchronize());
-    }
-    if (base < work)
-    {
-        uint32_t lastGrid = work - base;
-        lastGrid = (lastGrid + blockSize - 1) / blockSize;
-        ethash_calculate_dag_item<<<lastGrid, blockSize, 0, stream>>>(base);
-        CUDA_SAFE_CALL(cudaDeviceSynchronize());
-    }
-    CUDA_SAFE_CALL(cudaGetLastError());
-}
-
-*/
