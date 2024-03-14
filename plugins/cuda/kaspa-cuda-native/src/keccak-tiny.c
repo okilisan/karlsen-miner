@@ -124,13 +124,13 @@ __device__ __forceinline__ static void hashK(
 
 /** The sponge-based hash construction. **/
 __device__ __forceinline__ static void hashB3(
-                      const uint8_t initP[Plen],
                        uint8_t* out,
-                       const uint8_t* in) {
+                       const uint8_t* in,
+                       size_t len) {
 
   blake3_hasher hasher;
   blake3_hasher_init(&hasher);
-  blake3_hasher_update(&hasher, in, 80);
+  blake3_hasher_update(&hasher, in, len);
   blake3_hasher_finalize(&hasher, out, BLAKE3_OUT_LEN);
 
 
