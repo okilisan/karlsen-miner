@@ -129,12 +129,12 @@ DEV_INLINE hash256 fishhash_kernel( const fishhash_context& ctx, const hash512& 
 			//printf("fishhash_kernel debug 4.3, %032x", mix.word32s[8]);
 			//const uint32_t p2 = mix.word32s[8] % index_limit;
 			
-			
+			/*
 			const uint32_t p0 = mix.word32s[0] % index_limit;
 			const uint32_t p1 = mix.word32s[4] % index_limit;
 			const uint32_t p2 = mix.word32s[8] % index_limit;
+			*/
 			
-			/*
 			uint32_t mixGroup[8]; 
 			for (uint32_t c=0; c<8; c++) {
 				mixGroup[c] = (mix.word32s[4*c + 0] ^ mix.word32s[4*c + 1] ^ mix.word32s[4*c + 2] ^ mix.word32s[4*c + 3]);
@@ -143,7 +143,7 @@ DEV_INLINE hash256 fishhash_kernel( const fishhash_context& ctx, const hash512& 
 			const uint32_t p0 = (mixGroup[0] ^ mixGroup[3] ^ mixGroup[6]) % index_limit;
 			const uint32_t p1 = (mixGroup[1] ^ mixGroup[4] ^ mixGroup[7]) % index_limit;
 			const uint32_t p2 = (mixGroup[2] ^ mixGroup[5] ^           i) % index_limit;
-			*/
+			
 
 			//printf("fishhash_kernel debug 5");
 			hash1024 fetch0 = lookup(ctx, p0);
