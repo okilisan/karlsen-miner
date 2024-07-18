@@ -1,6 +1,10 @@
 name: Tests
-
 on: [push, pull_request]
+
+env:
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse # Should improve the speed of the build and the cache size.
+  ZSTD_CLEVEL: 10 # We want some tradeoff between speed and size.
+  ZSTD_NBTHREADS: 2 # We only got 2 cores.
 
 jobs:
 
@@ -9,27 +13,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          tool: protoc
+
+      - name: Install toolchain
+        id: rust-toolchain
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install cuda
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.2.2'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -54,46 +57,39 @@ jobs:
         os: [ ubuntu-latest, windows-latest ]
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Fix LibOpenCL on Linux
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt update
-          sudo apt install ocl-icd-opencl-dev -y
+        uses: actions/checkout@v4
 
       - name: Fix CRLF on Windows
         if: runner.os == 'Windows'
         run: git config --global core.autocrlf false
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          tool: protoc
+
+      - name: Install toolchain
+        id: rust-toolchain
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install CUDA Linux
         if: runner.os == 'Linux'
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.2.2'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
       - name: Install CUDA Windows
         if: runner.os == 'Windows'
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.5.1'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -128,12 +124,6 @@ jobs:
           command: test
           args: -p karlsen-miner --no-default-features --features=shuttle
 
-      - name: Run cargo test for karlsenopencl
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p karlsenopencl
-
 
   test-release:
     name: Test Suite Release
@@ -146,18 +136,14 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Fix LibOpenCL on Linux
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt update
-          sudo apt install ocl-icd-opencl-dev -y
-
       - name: Fix CRLF on Windows
         if: runner.os == 'Windows'
         run: git config --global core.autocrlf false
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -168,17 +154,17 @@ jobs:
 
       - name: Install CUDA Linux
         if: runner.os == 'Linux'
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.2.2'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
       - name: Install CUDA Windows
         if: runner.os == 'Windows'
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.5.1'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
@@ -217,21 +203,17 @@ jobs:
           command: test
           args: --no-default-features --features=shuttle --release -p karlsen-miner
 
-      - name: Run cargo test for karlsenopencl
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --release -p karlsenopencl
-
   lints:
     name: Lints
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -242,14 +224,14 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install cuda
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.2.2'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
       - name: Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/

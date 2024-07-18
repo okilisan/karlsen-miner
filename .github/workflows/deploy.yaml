@@ -9,26 +9,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Build gnu-linux on ubuntu-18.04 and musl on ubuntu latest
-        os: [ ubuntu-18.04, windows-latest, macos-latest ]
-        features: ["default", "karlsencuda/overclock "]
+        # Build gnu-linux on ubuntu-20.04 and musl on ubuntu latest
+        os: [ ubuntu-20.04, windows-latest, macos-latest ]
+        features: [ "karlsencuda/overclock" ]
     name: Building, ${{ matrix.os }} ${{ matrix.features }}
     steps:
       - name: Fix CRLF on Windows
         if: runner.os == 'Windows'
         run: git config --global core.autocrlf false
 
-      - name: Fix LibOpenCL on Linux
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt update
-          sudo apt install ocl-icd-opencl-dev -y
-
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
 
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
@@ -39,22 +35,22 @@ jobs:
 
       - name: Install CUDA Linux
         if: runner.os == 'Linux'
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.2.2'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
       - name: Install CUDA Windows
         if: runner.os == 'Windows'
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.5.1'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
       - name: Build on Linux GNU
-        if: matrix.os == 'ubuntu-18.04'
+        if: matrix.os == 'ubuntu-20.04'
         # We're using musl to make the binaries statically linked and portable
         run: |
           cargo build --target=x86_64-unknown-linux-gnu --release --all --features ${{ matrix.features }}
@@ -107,24 +103,25 @@ jobs:
           asset_content_type: application/zip
 
   intergrations:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
-        # Build gnu-linux on ubuntu-18.04 and musl on ubuntu latest
+        # Build gnu-linux on ubuntu-20.04 and musl on ubuntu latest
         itegration: [ hiveos ]
     name: Integrating, ${{ matrix.itegration }}
     steps:
-      - name: Fix LibOpenCL on Linux
+      - name: upgrade all the installed packages
         run: |
-          sudo apt update
-          sudo apt install ocl-icd-opencl-dev -y
+          sudo apt update && sudo apt upgrade -y
 
       - name: Check out code into the module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
 
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
@@ -135,9 +132,9 @@ jobs:
 
       - name: Install CUDA Linux
         if: runner.os == 'Linux'
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.2.2'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
