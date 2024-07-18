@@ -83,6 +83,7 @@ jobs:
       - name: Build on MacOS
         if: matrix.os == 'macos-latest'
         run: |
+          rustup target add x86_64-apple-darwin
           cargo build --target=x86_64-apple-darwin --release -p karlsen-miner
           asset_name="karlsen-miner-${{ github.event.release.tag_name }}-cpu-only-osx-amd64"
           mkdir ${asset_name}
