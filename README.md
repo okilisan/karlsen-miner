@@ -1,8 +1,10 @@
 # Karlsen-miner
 
 This is a modification of Kaspa Rust Miner for the Karlsen network
-please consider donate to the original dev :
+please consider donate to the original dev:
+
 **Elichai**: `kaspa:qzvqtx5gkvl3tc54up6r8pk5mhuft9rtr0lvn624w9mtv4eqm9rvc9zfdmmpu`
+
 **HauntedCook**: `kaspa:qz4jdyu04hv4hpyy00pl6trzw4gllnhnwy62xattejv2vaj5r0p5quvns058f`
 
 
@@ -24,7 +26,7 @@ cargo build --release --all
 ```
 
 ### From Binaries
-The [release page](https://github.com/tmrlvi/karlsen-miner/releases) includes precompiled binaries for Linux, and Windows (for the GPU version).
+The [release page](https://github.com/TCLL253/karlsen-miner/karlsen-miner/releases) includes precompiled binaries for Linux, and Windows (for the GPU version).
 
 ### Removing Plugins
 To remove a plugin, you simply remove the corresponding `dll`/`so` for the directory of the miner. 
