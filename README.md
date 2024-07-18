@@ -69,7 +69,7 @@ OPTIONS:
         --opencl-platform <OPENCL_PLATFORM>                Which OpenCL platform to use (limited to one per executable)
         --opencl-workload <OPENCL_WORKLOAD>                Ratio of nonces to GPU possible parrallel run in OpenCL [default: 512]
         --opencl-workload-absolute                         The values given by workload are not ratio, but absolute number of nonces in OpenCL [default: false]
-    -p, --port <PORT>                                      karlsend port [default: Mainnet = 42110, Testnet = 42210]
+    -p, --port <PORT>                                      karlsend port [default: Mainnet = 42110, Testnet = 42111]
     -s, --karlsend-address <karlsend_ADDRESS>                  The IP of the karlsend instance [default: 127.0.0.1]
     -t, --threads <NUM_THREADS>                            Amount of CPU miner threads to launch [default: 0]
         --testnet                                          Use testnet instead of mainnet [default: false]

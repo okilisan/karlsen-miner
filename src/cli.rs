@@ -4,7 +4,7 @@ use log::LevelFilter;
 use crate::Error;
 
 #[derive(Parser, Debug)]
-#[clap(name = "karlsen-miner", version, about = "A Karlsen high performance CPU miner", term_width = 0)]
+#[clap(name = "karlsen-miner", version, about = "A Karlsen high performance CPU/GPU miner", term_width = 0)]
 pub struct Opt {
     #[clap(short, long, help = "Enable debug logging level")]
     pub debug: bool,
@@ -21,7 +21,7 @@ pub struct Opt {
     #[clap(long = "devfund-percent", help = "The percentage of blocks to send to the devfund (minimum 0%)", default_value = "0", parse(try_from_str = parse_devfund_percent))]
     pub devfund_percent: u16,
 
-    #[clap(short, long, help = "karlsend port [default: Mainnet = 42110, Testnet = 42210, devnet = 42610]")]
+    #[clap(short, long, help = "karlsend port [default: Mainnet = 42110, Testnet = 42111, devnet = 42610]")]
     port: Option<u16>,
 
     #[clap(long, help = "Use testnet instead of mainnet [default: false]")]
