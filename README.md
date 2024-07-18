@@ -18,7 +18,7 @@ packages in the workspace. To compile a specific package, you run the following 
 ```sh
 git clone https://github.com/TCLL253/karlsen-miner/karlsen-miner
 cd karlsen-miner
-cargo build --release -p karlsen-miner -p karlsencuda -p karlsenopencl
+cargo build --release -p karlsen-miner -p karlsencuda
 ```
 And, the miner (and plugins) will be in `targets/release`. You can replace the last line with
 ```sh
@@ -32,7 +32,7 @@ The [release page](https://github.com/TCLL253/karlsen-miner/karlsen-miner/releas
 To remove a plugin, you simply remove the corresponding `dll`/`so` for the directory of the miner. 
 
 * `libkarlsencuda.so`, `libkarlsencuda.dll`: Cuda support for karlsen-miner
-* `libkarlsenopencl.so`, `libkarlsenopencl.dll`: OpenCL support for karlsen-miner
+* `libkarlsenopencl.so`, `libkarlsenopencl.dll`: OpenCL support for karlsen-miner (currently disabled)
 
 # Usage
 To start mining, you need to run [karlsend](https://github.com/karlsen-network/karlsend) and have an address to send the rewards to.
@@ -41,7 +41,7 @@ Here is a guidance on how to run a full node and how to generate addresses: http
 Help:
 ```
 karlsen-miner 
-A Karlsen high performance CPU miner
+A Karlsen high performance CPU/GPU miner
 
 USAGE:
     karlsen-miner [OPTIONS] --mining-address <MINING_ADDRESS>
@@ -57,7 +57,7 @@ OPTIONS:
         --cuda-workload <CUDA_WORKLOAD>                    Ratio of nonces to GPU possible parrallel run [default: 64]
         --cuda-workload-absolute                           The values given by workload are not ratio, but absolute number of nonces [default: false]
     -d, --debug                                            Enable debug logging level
-        --devfund-percent <DEVFUND_PERCENT>                The percentage of blocks to send to the devfund (minimum 2%) [default: 2]
+        --devfund-percent <DEVFUND_PERCENT>                The percentage of blocks to send to the devfund (minimum 0%) [default: 0]
         --experimental-amd                                 Uses SMID instructions in AMD. Miner will crash if instruction is not supported
     -h, --help                                             Print help information
         --mine-when-not-synced                             Mine even when karlsend says it is not synced
@@ -76,8 +76,9 @@ OPTIONS:
 ```
 
 To start mining, you just need to run the following:
-
-`./karlsen-miner --mining-address karlsen:XXXXX`
+```
+./karlsen-miner --mining-address karlsen:XXXXX
+```
 
 This will run the miner on all the available GPU devcies.
 
@@ -87,11 +88,14 @@ The devfund is a fund managed by the Karlsen community in order to fund Karlsen 
 A miner that wants to mine higher percentage into the dev-fund can pass the following flags: <br>
 `--devfund-precent=XX.YY` to mine only XX.YY% of the blocks into the devfund.
 
-**This version automatically sets the devfund donation to the community designated address. 
-Due to community decision, the minimum amount in the precompiled binaries is 2%**
+**This version automatically sets the devfund donation to the Karlsen Devfund, with a default donation rate of 0%**
 
-# Donation Addresses
+If you would like to support us, run the miner with the following command:
+```
+./karlsen-miner --devfund-percent <DEVFUND_PERCENT> --mining-address karlsen:XXXXX
+```
 
-**Elichai**: `kaspa:qzvqtx5gkvl3tc54up6r8pk5mhuft9rtr0lvn624w9mtv4eqm9rvc9zfdmmpu`
-
-**HauntedCook**: `kaspa:qz4jdyu04hv4hpyy00pl6trzw4gllnhnwy62xattejv2vaj5r0p5quvns058f`
+# Karlsen Donation Address
+```
+karlsen:qzrq7v5jhsc5znvtfdg6vxg7dz5x8dqe4wrh90jkdnwehp6vr8uj7csdss2l7
+```
