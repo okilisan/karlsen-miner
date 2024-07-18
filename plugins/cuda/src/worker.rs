@@ -13,10 +13,9 @@ use rand::{Fill, RngCore};
 use std::ffi::CString;
 use std::fs::OpenOptions;
 use std::ops::BitXor;
+use std::path::Path;
 use std::sync::{Arc, Weak};
 use tiny_keccak::Hasher;
-//use std::io::Result;
-use std::path::Path;
 
 static BPS: f32 = 0.5;
 
@@ -62,6 +61,7 @@ impl<'kernel> Kernel<'kernel> {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
+#[allow(dead_code)] // Allow dead code for unused unions
 pub union hash256 {
     pub word64s: [u64; 4usize],
     pub word32s: [u32; 8usize],
@@ -69,48 +69,19 @@ pub union hash256 {
     pub str_: [::std::os::raw::c_char; 32usize],
 }
 
-/*
-impl hash256 {
-    pub fn new() -> hash256 {
-        // Initialize the union with the bytes field set to zero.
-        unsafe { std::mem::transmute([0u8; 32usize]) }
-    }
-}
-*/
-
-/*
-impl hash256 {
-    // A constant function to create a new hash256 from a byte array.
-    const fn new(bytes: [u8; 32]) -> hash256 {
-        let mut union = std::mem::MaybeUninit::<hash256>::uninit();
-        unsafe {
-            std::ptr::write(&mut union as *mut _ as *mut [u8; 32], bytes);
-            union.assume_init()
-        }
-    }
-}
-*/
-
 #[repr(C)]
 #[derive(Copy, Clone)]
+#[allow(dead_code)] // Allow dead code for unused unions
 pub union hash512 {
     pub word64s: [u64; 8usize],
     pub word32s: [u32; 16usize],
     pub bytes: [u8; 64usize],
     pub str_: [::std::os::raw::c_char; 64usize],
 }
-/*
-impl hash512 {
-    pub fn new() -> hash512 {
-        // Initialize the union with one of its fields. Here, we choose to initialize it with bytes.
-        // Since Rust does not allow direct initialization of unions, we use a temporary variable and transmute it.
-        unsafe { std::mem::transmute([0u8; 64usize]) }
-    }
-}
-*/
 
 #[repr(C)]
 #[derive(Copy, Clone)]
+#[allow(dead_code)] // Allow dead code for unused unions
 pub union hash1024 {
     pub hash512s: [hash512; 2usize],
     pub word64s: [u64; 16usize],
@@ -119,16 +90,8 @@ pub union hash1024 {
     pub str_: [::std::os::raw::c_char; 128usize],
 }
 
-/*
-impl hash1024 {
-    pub fn new() -> hash1024 {
-        // Initialize the union with the bytes field set to zero.
-        unsafe { std::mem::transmute([0u8; 128usize]) }
-    }
-}
-*/
-
 const SIZE_U32: usize = std::mem::size_of::<u32>();
+#[allow(dead_code)]
 const SIZE_U64: usize = std::mem::size_of::<u64>();
 
 pub trait HashData {
@@ -144,10 +107,12 @@ pub trait HashData {
         self.as_bytes_mut()[index * SIZE_U32..index * SIZE_U32 + SIZE_U32].copy_from_slice(&value.to_le_bytes())
     }
 
+    #[allow(dead_code)]
     fn get_as_u64(&self, index: usize) -> u64 {
         u64::from_le_bytes(self.as_bytes()[index * SIZE_U64..index * SIZE_U64 + SIZE_U64].try_into().unwrap())
     }
 
+    #[allow(dead_code)]
     fn set_as_u64(&mut self, index: usize, value: u64) {
         self.as_bytes_mut()[index * SIZE_U64..index * SIZE_U64 + SIZE_U64].copy_from_slice(&value.to_le_bytes())
     }
@@ -246,12 +211,6 @@ const SEED: Hash256 = Hash256([
     0xeb, 0x01, 0x63, 0xae, 0xf2, 0xab, 0x1c, 0x5a, 0x66, 0x31, 0x0c, 0x1c, 0x14, 0xd6, 0x0f, 0x42, 0x55, 0xa9, 0xb3,
     0x9b, 0x0e, 0xdf, 0x26, 0x53, 0x98, 0x44, 0xf1, 0x17, 0xad, 0x67, 0x21, 0x19,
 ]);
-/*
-const SEED: hash256 = hash256::new([
-    0xeb, 0x01, 0x63, 0xae, 0xf2, 0xab, 0x1c, 0x5a, 0x66, 0x31, 0x0c, 0x1c, 0x14, 0xd6, 0x0f, 0x42,
-    0x55, 0xa9, 0xb3, 0x9b, 0x0e, 0xdf, 0x26, 0x53, 0x98, 0x44, 0xf1, 0x17, 0xad, 0x67, 0x21, 0x19,
-]);
-*/
 
 pub struct CudaGPUWorker<'gpu> {
     // NOTE: The order is important! context must be closed last
@@ -396,18 +355,6 @@ pub fn keccak(out: &mut [u8], data: &[u8]) {
     hasher.finalize(out);
 }
 
-/*
-fn xor_hash512(a: hash512, b: hash512) -> hash512 {
-    unsafe {
-        let mut result = hash512 { word64s: [0u64; 8] };
-        for i in 0..8 {
-            result.word64s[i] = a.word64s[i] ^ b.word64s[i];
-        }
-        result
-    }
-}
-*/
-
 fn build_light_cache(cache: &mut [Hash512]) {
     let mut item: Hash512 = Hash512::new();
     keccak(&mut item.0, &SEED.0);
@@ -456,7 +403,7 @@ fn prebuild_dataset(full_dataset: &mut Box<[Hash1024]>, light_cache: &[Hash512],
             }
         });
     } else {
-        build_dataset_segment(&mut full_dataset[0..], &light_cache, 0);
+        build_dataset_segment(&mut full_dataset[0..], light_cache, 0);
     }
 }
 
@@ -511,7 +458,7 @@ fn calculate_dataset_item_1024(light_cache: &[Hash512], index: usize) -> Hash102
 }
 
 fn save_dataset_to_file(full_dataset_unwrap: &[Hash1024], filename: &str) {
-    let total_size = full_dataset_unwrap.len() * std::mem::size_of::<Hash1024>();
+    let total_size = std::mem::size_of_val(full_dataset_unwrap);
     let file = OpenOptions::new()
         .read(true)
         .write(true)

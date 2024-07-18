@@ -58,6 +58,7 @@ impl BlockSeed {
 
 #[derive(Clone)]
 pub struct State {
+    #[allow(dead_code)]
     pub id: usize,
     matrix: Arc<Matrix>,
     pub target: Uint256,

@@ -31,7 +31,6 @@ mod target;
 mod watch;
 
 //remove the opencl plugin support for the moment
-//const WHITELIST: [&str; 4] = ["libkarlsencuda", "libkarlsenopencl", "karlsencuda", "karlsenopencl"];
 const WHITELIST: [&str; 2] = ["libkarlsencuda", "karlsencuda"];
 
 pub mod proto {
