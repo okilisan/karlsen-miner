@@ -16,7 +16,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use crate::cli::Opt;
-use crate::client::grpc::KaspadHandler;
+use crate::client::grpc::KarlsendHandler;
 use crate::client::stratum::StratumHandler;
 use crate::client::Client;
 use crate::miner::MinerManager;
@@ -24,15 +24,15 @@ use crate::target::Uint256;
 
 mod cli;
 mod client;
-mod kaspad_messages;
+mod karlsend_messages;
 mod miner;
 mod pow;
 mod target;
 mod watch;
 
 //remove the opencl plugin support for the moment
-//const WHITELIST: [&str; 4] = ["libkaspacuda", "libkaspaopencl", "kaspacuda", "kaspaopencl"];
-const WHITELIST: [&str; 2] = ["libkaspacuda", "kaspacuda"];
+//const WHITELIST: [&str; 4] = ["libkarlsencuda", "libkarlsenopencl", "karlsencuda", "karlsenopencl"];
+const WHITELIST: [&str; 2] = ["libkarlsencuda", "karlsencuda"];
 
 pub mod proto {
     #![allow(clippy::derive_partial_eq_without_eq)]
@@ -71,13 +71,13 @@ fn filter_plugins(dirname: &str) -> Vec<String> {
 }
 
 async fn get_client(
-    kaspad_address: String,
+    karlsend_address: String,
     mining_address: String,
     mine_when_not_synced: bool,
     block_template_ctr: Arc<AtomicU16>,
 ) -> Result<Box<dyn Client + 'static>, Error> {
-    if kaspad_address.starts_with("stratum+tcp://") {
-        let (_schema, address) = kaspad_address.split_once("://").unwrap();
+    if karlsend_address.starts_with("stratum+tcp://") {
+        let (_schema, address) = karlsend_address.split_once("://").unwrap();
         Ok(StratumHandler::connect(
             address.to_string().clone(),
             mining_address.clone(),
@@ -85,9 +85,9 @@ async fn get_client(
             Some(block_template_ctr.clone()),
         )
         .await?)
-    } else if kaspad_address.starts_with("grpc://") {
-        Ok(KaspadHandler::connect(
-            kaspad_address.clone(),
+    } else if karlsend_address.starts_with("grpc://") {
+        Ok(KarlsendHandler::connect(
+            karlsend_address.clone(),
             mining_address.clone(),
             mine_when_not_synced,
             Some(block_template_ctr.clone()),

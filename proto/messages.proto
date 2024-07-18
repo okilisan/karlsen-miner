@@ -6,7 +6,7 @@ option go_package = "github.com/karlsen-network/karlsend/protowire";
 import "p2p.proto";
 import "rpc.proto";
 
-message KaspadMessage {
+message KarlsendMessage {
   oneof payload {
     AddressesMessage addresses = 1;
     BlockMessage block = 2;
@@ -139,9 +139,9 @@ message KaspadMessage {
 }
 
 service P2P {
-  rpc MessageStream (stream KaspadMessage) returns (stream KaspadMessage) {}
+  rpc MessageStream (stream KarlsendMessage) returns (stream KarlsendMessage) {}
 }
 
 service RPC {
-  rpc MessageStream (stream KaspadMessage) returns (stream KaspadMessage) {}
+  rpc MessageStream (stream KarlsendMessage) returns (stream KarlsendMessage) {}
 }

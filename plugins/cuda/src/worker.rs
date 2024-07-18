@@ -13,18 +13,18 @@ use std::ffi::CString;
 use std::sync::{Arc, Weak};
 use tiny_keccak::Hasher;
 use std::ops::BitXor;
-use memmap::{MmapOptions};
-use std::fs::{OpenOptions};
+use memmap::MmapOptions;
+use std::fs::OpenOptions;
 //use std::io::Result;
 use std::path::Path;
 
 static BPS: f32 = 0.5;
 
-static PTX_86: &str = include_str!("../resources/kaspa-cuda-sm86.ptx");
-static PTX_75: &str = include_str!("../resources/kaspa-cuda-sm75.ptx");
-static PTX_61: &str = include_str!("../resources/kaspa-cuda-sm61.ptx");
-static PTX_30: &str = include_str!("../resources/kaspa-cuda-sm30.ptx");
-static PTX_20: &str = include_str!("../resources/kaspa-cuda-sm20.ptx");
+static PTX_86: &str = include_str!("../resources/karlsen-cuda-sm86.ptx");
+static PTX_75: &str = include_str!("../resources/karlsen-cuda-sm75.ptx");
+static PTX_61: &str = include_str!("../resources/karlsen-cuda-sm61.ptx");
+static PTX_30: &str = include_str!("../resources/karlsen-cuda-sm30.ptx");
+static PTX_20: &str = include_str!("../resources/karlsen-cuda-sm20.ptx");
 
 pub struct Kernel<'kernel> {
     func: Arc<Function<'kernel>>,

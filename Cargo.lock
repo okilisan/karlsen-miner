@@ -840,7 +840,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "kaspacuda"
+name = "karlsencuda"
 version = "0.1.0"
 dependencies = [
  "clap",
@@ -855,7 +855,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "kaspaopencl"
+name = "karlsenopencl"
 version = "0.1.0"
 dependencies = [
  "clap",
