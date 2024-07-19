@@ -445,11 +445,13 @@ mod tests {
                 let barrier_clone = Arc::clone(&barrier);
                 let handle1 = thread::spawn(move || {
                     barrier_clone.wait();
+                    thread::sleep(std::time::Duration::from_millis(1)); // Added sleep
                     assert_eq!(tx.wait_for_change(), Err(ChannelClosed(())));
                 });
                 let barrier_clone = Arc::clone(&barrier);
                 let handle2 = thread::spawn(move || {
                     barrier_clone.wait();
+                    thread::sleep(std::time::Duration::from_millis(1)); // Added sleep
                     drop(rx);
                 });
                 barrier.wait();

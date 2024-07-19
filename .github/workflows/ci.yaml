@@ -192,6 +192,8 @@ jobs:
           args: --features=no-asm --release -p karlsen-miner
 
       - name: Run cargo test release no parking_lot
+        env:
+          RUST_BACKTRACE: 1
         uses: actions-rs/cargo@v1
         with:
           command: test
