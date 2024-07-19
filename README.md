@@ -4,7 +4,7 @@
 [![Downloads Latest](https://img.shields.io/github/downloads/TCLL253/karlsen-miner/latest/total?style=flat-square)](https://github.com/TCLL253/karlsen-miner/releases/latest)
 [![dependency status](https://deps.rs/repo/github/TCLL253/karlsen-miner/status.svg)](https://deps.rs/repo/github/TCLL253/karlsen-miner)
 
-[![Discord](https://dcbadge.limes.pink/api/server/INVITE(e.g.%20https://dcbadge.limes.pink/api/server/https://discord.gg/ZRHnx9AkQK)](https://discord.gg/ZRHnx9AkQK)
+[![Discord](https://dcbadge.limes.pink/api/server/https://discord.gg/ZRHnx9AkQK)](https://discord.gg/ZRHnx9AkQK)
 [![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/KarlsenNetwork)
 
 This is a modification of Kaspa Rust Miner for the Karlsen network
