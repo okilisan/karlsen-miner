@@ -10,6 +10,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
+
       - name: Install toolchain
         id: rust-toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -76,11 +81,6 @@ jobs:
           key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-target-
-
-      - name: Install protoc
-        uses: taiki-e/install-action@v2
-        with:
-          tool: protoc
   
       - name: Run cargo check
         run: cargo check --tests
@@ -100,6 +100,11 @@ jobs:
         if: runner.os == 'Windows'
         run: git config --global core.autocrlf false
 
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
+
       - name: Install toolchain
         id: rust-toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -176,22 +181,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-target-
 
-      - name: Install protoc
-        uses: taiki-e/install-action@v2
-        with:
-          tool: protoc
-
       - name: Run cargo test regular features
         run: cargo test -p karlsen-miner
 
       - name: Run cargo test no asm
         run: cargo test -p karlsen-miner --features=no-asm
 
-      - name: Run cargo test with parking_lot
-        run: cargo test -p karlsen-miner --features=parking_lot
+      - name: Run cargo test no parking_lot
+        run: cargo test -p karlsen-miner --no-default-features
 
       - name: Run cargo test shuttle
-        run: cargo test -p karlsen-miner --features=shuttle
+        run: cargo test -p karlsen-miner --no-default-features --features=shuttle
 
 
   test-release:
@@ -209,6 +209,11 @@ jobs:
         if: runner.os == 'Windows'
         run: git config --global core.autocrlf false
 
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
+
       - name: Install toolchain
         id: rust-toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -285,19 +290,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-target-
 
-      - name: Install protoc
-        uses: taiki-e/install-action@v2
-        with:
-          tool: protoc
-
-      - name: Run cargo test release regular features
-        run: cargo test -p karlsen-miner --release
+      - name: Run cargo test regular features
+        run: cargo test -p karlsen-miner
 
       - name: Run cargo test release no asm
         run: cargo test -p karlsen-miner --features=no-asm --release
 
-      - name: Run cargo test release with parking_lot
-        run: cargo test -p karlsen-miner --features=parking_lot --release
+      - name: Run cargo test release no parking_lot
+        run: cargo test -p karlsen-miner --no-default-features --release
 
       - name: Run cargo test release shuttle
         run: cargo test -p karlsen-miner --no-default-features --features=shuttle --release
@@ -308,6 +308,11 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
+
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
 
       - name: Install toolchain
         id: rust-toolchain
@@ -377,11 +382,6 @@ jobs:
           key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-target-
-
-      - name: Install protoc
-        uses: taiki-e/install-action@v2
-        with:
-          tool: protoc
   
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
