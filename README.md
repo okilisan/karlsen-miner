@@ -95,7 +95,7 @@ If you would like to support us, run the miner with the following command:
 ./karlsen-miner --devfund-percent <DEVFUND_PERCENT> --mining-address karlsen:XXXXX
 ```
 
-# Karlsen Donation Address
+# Karlsen Dev Fund
 ```
 karlsen:qzrq7v5jhsc5znvtfdg6vxg7dz5x8dqe4wrh90jkdnwehp6vr8uj7csdss2l7
 ```
