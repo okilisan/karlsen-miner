@@ -1,11 +1,6 @@
 name: Tests
 on: [push, pull_request]
 
-env:
-  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse # Should improve the speed of the build and the cache size.
-  ZSTD_CLEVEL: 10 # We want some tradeoff between speed and size.
-  ZSTD_NBTHREADS: 2 # We only got 2 cores.
-
 jobs:
 
   check:
@@ -192,8 +187,6 @@ jobs:
           args: --features=no-asm --release -p karlsen-miner
 
       - name: Run cargo test release no parking_lot
-        env:
-          RUST_BACKTRACE: 1
         uses: actions-rs/cargo@v1
         with:
           command: test
