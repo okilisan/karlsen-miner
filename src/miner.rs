@@ -17,12 +17,12 @@ use karlsen_miner::{PluginManager, WorkerSpec};
 
 type MinerHandler = std::thread::JoinHandle<Result<(), Error>>;
 
-#[cfg(any(target_os = "linux", target_os = "mac_os"))]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 extern "C" fn signal_panic(_signal: nix::libc::c_int) {
     panic!("Forced shutdown");
 }
 
-#[cfg(any(target_os = "linux", target_os = "mac_os"))]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn register_freeze_handler() {
     let handler = nix::sys::signal::SigHandler::Handler(signal_panic);
     unsafe {
@@ -30,7 +30,7 @@ fn register_freeze_handler() {
     }
 }
 
-#[cfg(any(target_os = "linux", target_os = "mac_os"))]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn trigger_freeze_handler(kill_switch: Arc<AtomicBool>, handle: &MinerHandler) -> std::thread::JoinHandle<()> {
     use std::os::unix::thread::JoinHandleExt;
     let pthread_handle = handle.as_pthread_t();
@@ -72,12 +72,12 @@ fn trigger_freeze_handler(kill_switch: Arc<AtomicBool>, handle: &MinerHandler) -
     })
 }
 
-#[cfg(not(any(target_os = "linux", target_os = "mac_os", target_os = "windows")))]
+#[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
 fn trigger_freeze_handler(kill_switch: Arc<AtomicBool>, handle: &MinerHandler) {
     warn!("Freeze handler is not implemented. Frozen threads are ignored");
 }
 
-#[cfg(not(any(target_os = "linux", target_os = "mac_os", target_os = "windows")))]
+#[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
 fn register_freeze_handler() {
     warn!("Freeze handler is not implemented. Frozen threads are ignored");
 }
