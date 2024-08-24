@@ -4,23 +4,30 @@ use log::LevelFilter;
 use crate::Error;
 
 #[derive(Parser, Debug)]
-#[clap(name = "karlsen-miner", version, about = "A Karlsen high performance CPU miner", term_width = 0)]
+#[clap(name = "karlsen-miner", version, about = "A Karlsen high performance CPU/GPU miner", term_width = 0)]
 pub struct Opt {
     #[clap(short, long, help = "Enable debug logging level")]
     pub debug: bool,
-    #[clap(short = 'a', long = "mining-address", help = "The Kaspa address for the miner reward")]
+    #[clap(short = 'a', long = "mining-address", help = "The Karlsen address for the miner reward")]
     pub mining_address: String,
-    #[clap(short = 's', long = "karlsend-address", default_value = "127.0.0.1", help = "The IP of the karlsend instance")]
+    #[clap(
+        short = 's',
+        long = "karlsend-address",
+        default_value = "127.0.0.1",
+        help = "The IP of the karlsend instance"
+    )]
     pub karlsend_address: String,
 
     #[clap(long = "devfund-percent", help = "The percentage of blocks to send to the devfund (minimum 0%)", default_value = "0", parse(try_from_str = parse_devfund_percent))]
     pub devfund_percent: u16,
 
-    #[clap(short, long, help = "karlsend port [default: Mainnet = 42110, Testnet = 16211]")]
+    #[clap(short, long, help = "karlsend port [default: Mainnet = 42110, Testnet = 42111, devnet = 42610]")]
     port: Option<u16>,
 
     #[clap(long, help = "Use testnet instead of mainnet [default: false]")]
     testnet: bool,
+    #[clap(long, help = "Use devnet instead of mainnet [default: false]")]
+    devnet: bool,
     #[clap(short = 't', long = "threads", help = "Amount of CPU miner threads to launch [default: 0]")]
     pub num_threads: Option<u16>,
     #[clap(
@@ -100,7 +107,13 @@ impl Opt {
     }
 
     fn port(&mut self) -> u16 {
-        *self.port.get_or_insert(if self.testnet { 16211 } else { 42110 })
+        *self.port.get_or_insert(if self.testnet {
+            42210
+        } else if self.devnet {
+            42610
+        } else {
+            42110
+        })
     }
 
     pub fn log_level(&self) -> LevelFilter {

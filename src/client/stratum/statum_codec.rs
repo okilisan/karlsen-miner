@@ -112,11 +112,11 @@ pub(crate) struct StratumLine {
 /// An error occurred while encoding or decoding a line.
 #[derive(Debug)]
 pub(crate) enum NewLineJsonCodecError {
-    JsonParseError(String),
+    JsonParseError(()),
     JsonEncodeError,
     LineSplitError,
     LineEncodeError,
-    Io(io::Error),
+    Io(()),
 }
 
 impl fmt::Display for NewLineJsonCodecError {
@@ -125,15 +125,15 @@ impl fmt::Display for NewLineJsonCodecError {
     }
 }
 impl From<io::Error> for NewLineJsonCodecError {
-    fn from(e: io::Error) -> NewLineJsonCodecError {
-        NewLineJsonCodecError::Io(e)
+    fn from(_: io::Error) -> NewLineJsonCodecError {
+        NewLineJsonCodecError::Io(())
     }
 }
 impl std::error::Error for NewLineJsonCodecError {}
 
 impl From<(String, String)> for NewLineJsonCodecError {
-    fn from(e: (String, String)) -> Self {
-        NewLineJsonCodecError::JsonParseError(format!("{}: {}", e.0, e.1))
+    fn from(_: (String, String)) -> Self {
+        NewLineJsonCodecError::JsonParseError(())
     }
 }
 

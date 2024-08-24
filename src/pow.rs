@@ -58,6 +58,7 @@ impl BlockSeed {
 
 #[derive(Clone)]
 pub struct State {
+    #[allow(dead_code)]
     pub id: usize,
     matrix: Arc<Matrix>,
     pub target: Uint256,
@@ -138,10 +139,11 @@ impl State {
 
     #[inline(always)]
     pub fn check_pow(&self, nonce: u64) -> bool {
-        let pow = self.calculate_pow(nonce);
+        let _pow = self.calculate_pow(nonce);
         // The pow hash must be less or equal than the claimed target.
         //info!("nonce {}, pow {:?}, target {:?}, comp {}", nonce, pow, self.target, pow <= self.target);
         //pow <= self.target
+        // we forced temporarily the check pow
         true
     }
 
@@ -164,11 +166,13 @@ impl State {
     }
 
     pub fn load_to_gpu(&self, gpu_work: &mut dyn Worker) {
+        //info!("load_to_gpu: debug1 ");
         gpu_work.load_block_constants(&self.pow_hash_header, &self.matrix.0, &self.target.0);
     }
 
     #[inline(always)]
     pub fn pow_gpu(&self, gpu_work: &mut dyn Worker) {
+        //info!("pow_gpu: debug1 ");
         gpu_work.calculate_hash(None, self.nonce_mask, self.nonce_fixed);
     }
 }

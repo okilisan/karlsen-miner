@@ -1,5 +1,4 @@
 name: Tests
-
 on: [push, pull_request]
 
 jobs:
@@ -9,41 +8,82 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          tool: protoc
+
+      - name: Install toolchain
+        id: rust-toolchain
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install cuda
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.2.2'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
-      - name: Cache
-        uses: actions/cache@v2
+      - name: Cache cargo bin
+        uses: actions/cache@v4
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          path: ~/.cargo/bin/
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-bin-
 
-      - name: Run cargo check
-        uses: actions-rs/cargo@v1
+      - name: Cache cargo registry index
+        uses: actions/cache@v4
         with:
-          command: check
-          args: --tests
+          path: ~/.cargo/registry/index/
+          key: ${{ runner.os }}-cargo-registry-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-index-
+
+      - name: Cache cargo registry cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry/cache/
+          key: ${{ runner.os }}-cargo-registry-cache-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-cache-
+
+      - name: Cache cargo git db
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-git-db-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-git-db-
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+            
+      - name: Cache cargo git
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-git-
+
+      - name: Cache build
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-target-
+  
+      - name: Run cargo check
+        run: cargo check --tests
 
   test:
     name: Test Suite
@@ -54,85 +94,104 @@ jobs:
         os: [ ubuntu-latest, windows-latest ]
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Fix LibOpenCL on Linux
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt update
-          sudo apt install ocl-icd-opencl-dev -y
+        uses: actions/checkout@v4
 
       - name: Fix CRLF on Windows
         if: runner.os == 'Windows'
         run: git config --global core.autocrlf false
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          tool: protoc
+
+      - name: Install toolchain
+        id: rust-toolchain
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install CUDA Linux
         if: runner.os == 'Linux'
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.2.2'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
       - name: Install CUDA Windows
         if: runner.os == 'Windows'
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.5.1'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
-      - name: Cache
-        uses: actions/cache@v2
+      - name: Cache cargo bin
+        uses: actions/cache@v4
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          path: ~/.cargo/bin/
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-bin-
+
+      - name: Cache cargo registry index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry/index/
+          key: ${{ runner.os }}-cargo-registry-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-index-
+
+      - name: Cache cargo registry cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry/cache/
+          key: ${{ runner.os }}-cargo-registry-cache-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-cache-
+
+      - name: Cache cargo git db
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-git-db-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-git-db-
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+            
+      - name: Cache cargo git
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-git-
+
+      - name: Cache build
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-target-
 
       - name: Run cargo test regular features
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p karlsen-miner
+        run: cargo test -p karlsen-miner
 
       - name: Run cargo test no asm
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p karlsen-miner --features=no-asm
-
+        run: cargo test -p karlsen-miner --features=no-asm
 
       - name: Run cargo test no parking_lot
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p karlsen-miner --no-default-features
+        run: cargo test -p karlsen-miner --no-default-features
 
       - name: Run cargo test shuttle
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p karlsen-miner --no-default-features --features=shuttle
-
-      - name: Run cargo test for kaspaopencl
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p kaspaopencl
+        run: cargo test -p karlsen-miner --no-default-features --features=shuttle
 
 
   test-release:
@@ -144,130 +203,188 @@ jobs:
         os: [ ubuntu-latest, windows-latest ]
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Fix LibOpenCL on Linux
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt update
-          sudo apt install ocl-icd-opencl-dev -y
+        uses: actions/checkout@v4
 
       - name: Fix CRLF on Windows
         if: runner.os == 'Windows'
         run: git config --global core.autocrlf false
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          tool: protoc
+
+      - name: Install toolchain
+        id: rust-toolchain
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install CUDA Linux
         if: runner.os == 'Linux'
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.2.2'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
       - name: Install CUDA Windows
         if: runner.os == 'Windows'
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.5.1'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
-      - name: Cache
-        uses: actions/cache@v2
+      - name: Cache cargo bin
+        uses: actions/cache@v4
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          path: ~/.cargo/bin/
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-bin-
 
-      - name: Run cargo test release regular features
-        uses: actions-rs/cargo@v1
+      - name: Cache cargo registry index
+        uses: actions/cache@v4
         with:
-          command: test
-          args: --release -p karlsen-miner
+          path: ~/.cargo/registry/index/
+          key: ${{ runner.os }}-cargo-registry-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-index-
+
+      - name: Cache cargo registry cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry/cache/
+          key: ${{ runner.os }}-cargo-registry-cache-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-cache-
+
+      - name: Cache cargo git db
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-git-db-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-git-db-
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+            
+      - name: Cache cargo git
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-git-
+
+      - name: Cache build
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-target-
+
+      - name: Run cargo test regular features
+        run: cargo test -p karlsen-miner
 
       - name: Run cargo test release no asm
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --features=no-asm --release -p karlsen-miner
+        run: cargo test -p karlsen-miner --features=no-asm --release
 
       - name: Run cargo test release no parking_lot
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --no-default-features --release -p karlsen-miner
+        run: cargo test -p karlsen-miner --no-default-features --release
 
       - name: Run cargo test release shuttle
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --no-default-features --features=shuttle --release -p karlsen-miner
-
-      - name: Run cargo test for kaspaopencl
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --release -p kaspaopencl
+        run: cargo test -p karlsen-miner --no-default-features --features=shuttle --release
 
   lints:
     name: Lints
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v1
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          tool: protoc
+
+      - name: Install toolchain
+        id: rust-toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
           components: rustfmt, clippy
 
       - name: Install cuda
-        uses: Jimver/cuda-toolkit@v0.2.8
+        uses: Jimver/cuda-toolkit@v0.2.16
         with:
-          cuda: '11.2.2'
+          cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
 
-      - name: Cache
-        uses: actions/cache@v2
+      - name: Cache cargo bin
+        uses: actions/cache@v4
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          path: ~/.cargo/bin/
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-bin-
 
+      - name: Cache cargo registry index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry/index/
+          key: ${{ runner.os }}-cargo-registry-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-index-
 
+      - name: Cache cargo registry cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry/cache/
+          key: ${{ runner.os }}-cargo-registry-cache-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-cache-
+
+      - name: Cache cargo git db
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-git-db-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-git-db-
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+            
+      - name: Cache cargo git
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-git-
+
+      - name: Cache build
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-target-
+  
       - name: Run cargo fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+        run: cargo fmt --all -- --check
 
       - name: Run cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --tests -- -D warnings
+        run: cargo clippy --tests -- -D warnings
