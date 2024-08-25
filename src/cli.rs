@@ -107,7 +107,7 @@ impl Opt {
     }
 
     fn port(&mut self) -> u16 {
-        *self.port.get_or_insert_with(|| {
+        *self.port.get_or_insert({
             if self.testnet {
                 42210
             } else if self.devnet {
