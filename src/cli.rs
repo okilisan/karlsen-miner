@@ -4,12 +4,7 @@ use log::LevelFilter;
 use crate::Error;
 
 #[derive(Parser, Debug)]
-#[clap(
-    name = "karlsen-miner", 
-    version, 
-    about = "A Karlsen high-performance CPU/GPU miner", 
-    term_width = 0
-)]
+#[clap(name = "karlsen-miner", version, about = "A Karlsen high-performance CPU/GPU miner", term_width = 0)]
 pub struct Opt {
     #[clap(short, long, help = "Enable debug logging level")]
     pub debug: bool,
@@ -33,11 +28,7 @@ pub struct Opt {
     )]
     pub devfund_percent: u16,
 
-    #[clap(
-        short, 
-        long, 
-        help = "karlsend port [default: Mainnet = 42110, Testnet = 42111, Devnet = 42610]"
-    )]
+    #[clap(short, long, help = "karlsend port [default: Mainnet = 42110, Testnet = 42111, Devnet = 42610]")]
     port: Option<u16>,
 
     #[clap(long, help = "Use testnet instead of mainnet [default: false]")]
@@ -46,11 +37,7 @@ pub struct Opt {
     #[clap(long, help = "Use devnet instead of mainnet [default: false]")]
     devnet: bool,
 
-    #[clap(
-        short = 't', 
-        long = "threads", 
-        help = "Number of CPU miner threads to launch [default: 0]"
-    )]
+    #[clap(short = 't', long = "threads", help = "Number of CPU miner threads to launch [default: 0]")]
     pub num_threads: Option<u16>,
 
     #[clap(
@@ -93,8 +80,8 @@ impl Opt {
 
         if !self.karlsend_address.contains("://") {
             let port_str = self.port().to_string();
-            let (karlsend, port) = self.karlsend_address.split_once(':')
-                .unwrap_or((self.karlsend_address.as_str(), port_str.as_str()));
+            let (karlsend, port) =
+                self.karlsend_address.split_once(':').unwrap_or((self.karlsend_address.as_str(), port_str.as_str()));
 
             self.karlsend_address = format!("grpc://{}:{}", karlsend, port);
         }
