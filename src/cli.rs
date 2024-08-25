@@ -16,7 +16,7 @@ pub struct Opt {
         short = 's',
         long = "karlsend-address",
         default_value = "127.0.0.1",
-        help = "The IP address, pool address, or node address of the karlsend instance"
+        help = "Specify the IP, pool, or node address of the Karlsend instance. Use stratum+tcp:// for stratum or grpc:// for Karlsend (default: grpc://127.0.0.1)"
     )]
     pub karlsend_address: String,
 

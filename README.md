@@ -75,9 +75,10 @@ OPTIONS:
         --opencl-workload <OPENCL_WORKLOAD>                Ratio of nonces to GPU possible parrallel run in OpenCL [default: 512]
         --opencl-workload-absolute                         The values given by workload are not ratio, but absolute number of nonces in OpenCL [default: false]
     -p, --port <PORT>                                      karlsend port [default: Mainnet = 42110, Testnet = 42210, Devnet = 42610]
-    -s, --karlsend-address <karlsend_ADDRESS>              The IP address, pool address, or node address of the karlsend instance [default: 127.0.0.1]
+    -s, --karlsend-address <karlsend_ADDRESS>              IP, pool, or node address of the Karlsend instance. Use stratum+tcp:// for stratum or grpc:// for Karlsend (default: grpc://127.0.0.1)
     -t, --threads <NUM_THREADS>                            Amount of CPU miner threads to launch [default: 0]
         --testnet                                          Use testnet instead of mainnet [default: false]
+        --devnet                                           Use devnet instead of mainnet [default: false]
 ```
 
 To start mining, you just need to run the following:
