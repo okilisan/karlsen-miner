@@ -387,7 +387,7 @@ impl MinerManager {
             Self::log_single_hashrate(
                 &hashes_tried,
                 "Current hashrate is".into(),
-                "Workers stalled or crashed. Considered reducing workload and check that your node is synced",
+                "Workers stalled or crashed. Consider reducing workload and check that your node is synced",
                 duration,
                 false,
             );
