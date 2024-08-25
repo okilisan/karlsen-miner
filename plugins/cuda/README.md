@@ -12,7 +12,7 @@ This version includes a precompiled PTX, which would work with most modern GPUs.
 you have to clone the project:
 
 ```sh
-git clone https://github.com/TCLL253/karlsen-miner/karlsen-miner.git
+git clone https://github.com/karlsen-network/karlsen-miner.git
 cd karlsen-miner
 # Compute version 8.6
 /usr/local/cuda-11.5/bin/nvcc plugins/cuda/karlsen-cuda-native/src/karlsen-cuda.cu -std=c++11 -O3 --restrict --ptx --gpu-architecture=compute_86 --gpu-code=sm_86 -o plugins/cuda/resources/karlsen-cuda-sm86.ptx -Xptxas -O3 -Xcompiler -O3
