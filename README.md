@@ -40,8 +40,8 @@ To remove a plugin, you simply remove the corresponding `dll`/`so` for the direc
 * `libkarlsenopencl.so`, `libkarlsenopencl.dll`: OpenCL support for karlsen-miner (currently disabled)
 
 # Usage
-To start mining, you need to run [karlsend](https://github.com/karlsen-network/karlsend) and have an address to send the rewards to.
-Here is a guidance on how to run a full node and how to generate addresses: https://github.com/karlsennet/docs/blob/main/Getting%20Started/Full%20Node%20Installation.md
+To start mining, you need to run [karlsend](https://github.com/karlsen-network/rusty-karlsen) and have an address to send the rewards to.
+Here is a guidance on how to run a full node and how to generate addresses: https://github.com/karlsen-network/docs/blob/main/Getting%20Started/Rust%20Full%20Node%20Installation.md
 
 Help:
 ```
