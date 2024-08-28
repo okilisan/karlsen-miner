@@ -1,8 +1,8 @@
 # Karlsen-miner
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/TCLL253/karlsen-miner/ci.yaml)](https://github.com/TCLL253/karlsen-miner/actions)
-[![Latest Release](https://img.shields.io/github/v/release/TCLL253/karlsen-miner?display_name=tag&style=flat-square)](https://github.com/TCLL253/karlsen-miner/releases)
-[![Downloads Latest](https://img.shields.io/github/downloads/TCLL253/karlsen-miner/latest/total?style=flat-square)](https://github.com/TCLL253/karlsen-miner/releases/latest)
-[![dependency status](https://deps.rs/repo/github/TCLL253/karlsen-miner/status.svg)](https://deps.rs/repo/github/TCLL253/karlsen-miner)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/karlsen-network/karlsen-miner/ci.yaml)](https://github.com/karlsen-network/karlsen-miner/actions)
+[![Latest Release](https://img.shields.io/github/v/release/karlsen-network/karlsen-miner?display_name=tag&style=flat-square)](https://github.com/karlsen-network/karlsen-miner/releases)
+[![Downloads Latest](https://img.shields.io/github/downloads/karlsen-network/karlsen-miner/latest/total?style=flat-square)](https://github.com/karlsen-network/karlsen-miner/releases/latest)
+[![dependency status](https://deps.rs/repo/github/karlsen-network/karlsen-miner/status.svg)](https://deps.rs/repo/github/karlsen-network/karlsen-miner)
 [![Join the Karlsen Discord Server](https://img.shields.io/discord/1169939685280337930.svg?label=&logo=discord&logoColor=ffffff)](https://discord.gg/ZPZRvgMJDT)
 
 This is a modification of Kaspa Rust Miner for the Karlsen network
@@ -21,7 +21,7 @@ If you are looking to build from the repository (for debug / extension), note th
 packages in the workspace. To compile a specific package, you run the following command or any subset of it
 
 ```sh
-git clone https://github.com/TCLL253/karlsen-miner/karlsen-miner
+git clone https://github.com/karlsen-network/karlsen-miner
 cd karlsen-miner
 cargo build --release -p karlsen-miner -p karlsencuda
 ```
@@ -31,7 +31,7 @@ cargo build --release --all
 ```
 
 ### From Binaries
-The [release page](https://github.com/TCLL253/karlsen-miner/karlsen-miner/releases) includes precompiled binaries for Linux, and Windows (for the GPU version).
+The [release page](https://github.com/karlsen-network/karlsen-miner/releases) includes precompiled binaries for Linux, and Windows (for the GPU version).
 
 ### Removing Plugins
 To remove a plugin, you simply remove the corresponding `dll`/`so` for the directory of the miner. 
@@ -74,10 +74,11 @@ OPTIONS:
         --opencl-platform <OPENCL_PLATFORM>                Which OpenCL platform to use (limited to one per executable)
         --opencl-workload <OPENCL_WORKLOAD>                Ratio of nonces to GPU possible parrallel run in OpenCL [default: 512]
         --opencl-workload-absolute                         The values given by workload are not ratio, but absolute number of nonces in OpenCL [default: false]
-    -p, --port <PORT>                                      karlsend port [default: Mainnet = 42110, Testnet = 42111]
-    -s, --karlsend-address <karlsend_ADDRESS>                  The IP of the karlsend instance [default: 127.0.0.1]
+    -p, --port <PORT>                                      karlsend port [default: Mainnet = 42110, Testnet = 42210, Devnet = 42610]
+    -s, --karlsend-address <karlsend_ADDRESS>              IP, pool, or node address of the Karlsend instance. Use stratum+tcp:// for stratum or grpc:// for Karlsend (default: grpc://127.0.0.1)
     -t, --threads <NUM_THREADS>                            Amount of CPU miner threads to launch [default: 0]
         --testnet                                          Use testnet instead of mainnet [default: false]
+        --devnet                                           Use devnet instead of mainnet [default: false]
 ```
 
 To start mining, you just need to run the following:

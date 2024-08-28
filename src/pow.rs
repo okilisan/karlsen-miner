@@ -140,6 +140,10 @@ impl State {
     #[inline(always)]
     pub fn check_pow(&self, nonce: u64) -> bool {
         let _pow = self.calculate_pow(nonce);
+        if _pow <= self.target {
+            info!("Found a block with pow: {:x}", _pow);
+            info!("Target was: {:x}", self.target);
+        }
         // The pow hash must be less or equal than the claimed target.
         //info!("nonce {}, pow {:?}, target {:?}, comp {}", nonce, pow, self.target, pow <= self.target);
         //pow <= self.target
