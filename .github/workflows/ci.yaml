@@ -2,7 +2,6 @@ name: Tests
 on: [push, pull_request]
 
 jobs:
-
   check:
     name: Check
     runs-on: ubuntu-latest
@@ -193,7 +192,6 @@ jobs:
       - name: Run cargo test shuttle
         run: cargo test -p karlsen-miner --no-default-features --features=shuttle
 
-
   test-release:
     name: Test Suite Release
     runs-on: ${{ matrix.os }}
@@ -291,7 +289,7 @@ jobs:
             ${{ runner.os }}-cargo-target-
 
       - name: Run cargo test regular features
-        run: cargo test -p karlsen-miner
+        run: cargo test -p karlsen-miner --release
 
       - name: Run cargo test release no asm
         run: cargo test -p karlsen-miner --features=no-asm --release
