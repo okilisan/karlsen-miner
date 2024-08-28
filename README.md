@@ -40,8 +40,8 @@ To remove a plugin, you simply remove the corresponding `dll`/`so` for the direc
 * `libkarlsenopencl.so`, `libkarlsenopencl.dll`: OpenCL support for karlsen-miner (currently disabled)
 
 # Usage
-To start mining, you need to run [karlsend](https://github.com/karlsen-network/karlsend) and have an address to send the rewards to.
-Here is a guidance on how to run a full node and how to generate addresses: https://github.com/karlsennet/docs/blob/main/Getting%20Started/Full%20Node%20Installation.md
+To start mining, you need to run [karlsend](https://github.com/karlsen-network/rusty-karlsen) and have an address to send the rewards to.
+Here is a guidance on how to run a full node and how to generate addresses: https://github.com/karlsen-network/docs/blob/main/Getting%20Started/Rust%20Full%20Node%20Installation.md
 
 Help:
 ```
@@ -63,17 +63,9 @@ OPTIONS:
         --cuda-workload-absolute                           The values given by workload are not ratio, but absolute number of nonces [default: false]
     -d, --debug                                            Enable debug logging level
         --devfund-percent <DEVFUND_PERCENT>                The percentage of blocks to send to the devfund (minimum 0%) [default: 0]
-        --experimental-amd                                 Uses SMID instructions in AMD. Miner will crash if instruction is not supported
     -h, --help                                             Print help information
         --mine-when-not-synced                             Mine even when karlsend says it is not synced
         --nonce-gen <NONCE_GEN>                            The random method used to generate nonces. Options: (i) xoshiro (ii) lean [default: lean]
-        --opencl-amd-disable                               Disables AMD mining (does not override opencl-enable)
-        --opencl-device <OPENCL_DEVICE>                    Which OpenCL GPUs to use on a specific platform
-        --opencl-enable                                    Enable opencl, and take all devices of the chosen platform
-        --opencl-no-amd-binary                             Disable fetching of precompiled AMD kernel (if exists)
-        --opencl-platform <OPENCL_PLATFORM>                Which OpenCL platform to use (limited to one per executable)
-        --opencl-workload <OPENCL_WORKLOAD>                Ratio of nonces to GPU possible parrallel run in OpenCL [default: 512]
-        --opencl-workload-absolute                         The values given by workload are not ratio, but absolute number of nonces in OpenCL [default: false]
     -p, --port <PORT>                                      karlsend port [default: Mainnet = 42110, Testnet = 42210, Devnet = 42610]
     -s, --karlsend-address <karlsend_ADDRESS>              IP, pool, or node address of the Karlsend instance. Use stratum+tcp:// for stratum or grpc:// for Karlsend (default: grpc://127.0.0.1)
     -t, --threads <NUM_THREADS>                            Amount of CPU miner threads to launch [default: 0]
