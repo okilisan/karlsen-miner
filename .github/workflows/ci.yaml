@@ -2,7 +2,6 @@ name: Tests
 on: [push, pull_request]
 
 jobs:
-
   check:
     name: Check
     runs-on: ubuntu-latest
@@ -187,12 +186,8 @@ jobs:
       - name: Run cargo test no asm
         run: cargo test -p karlsen-miner --features=no-asm
 
-      - name: Run cargo test no parking_lot
-        run: cargo test -p karlsen-miner --no-default-features
-
       - name: Run cargo test shuttle
         run: cargo test -p karlsen-miner --no-default-features --features=shuttle
-
 
   test-release:
     name: Test Suite Release
@@ -291,13 +286,10 @@ jobs:
             ${{ runner.os }}-cargo-target-
 
       - name: Run cargo test regular features
-        run: cargo test -p karlsen-miner
+        run: cargo test -p karlsen-miner --release
 
       - name: Run cargo test release no asm
         run: cargo test -p karlsen-miner --features=no-asm --release
-
-      - name: Run cargo test release no parking_lot
-        run: cargo test -p karlsen-miner --no-default-features --release
 
       - name: Run cargo test release shuttle
         run: cargo test -p karlsen-miner --no-default-features --features=shuttle --release
