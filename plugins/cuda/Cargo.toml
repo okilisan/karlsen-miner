@@ -1,5 +1,5 @@
 [package]
-name = "kaspacuda"
+name = "karlsencuda"
 version = "0.1.0"
 edition = "2021"
 
@@ -13,6 +13,8 @@ rand = "0.8"
 clap = { version = "3.0", features = ["color", "derive"]}
 env_logger = "0.9"
 nvml-wrapper = { git = "https://github.com/benrod3k/nvml-wrapper", branch = "495.29.05", optional = true }
+tiny-keccak = { version = "2.0.2", features = ["keccak"] }
+memmap = "0.7.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
