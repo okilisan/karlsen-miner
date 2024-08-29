@@ -129,7 +129,7 @@ pub fn get_num_cpus(n_cpus: Option<u16>) -> u16 {
     })
 }
 
-const LOG_RATE: Duration = Duration::from_secs(10);
+const LOG_RATE: Duration = Duration::from_secs(30);
 
 impl MinerManager {
     pub fn new(send_channel: Sender<BlockSeed>, n_cpus: Option<u16>, manager: &PluginManager) -> Self {
@@ -387,7 +387,7 @@ impl MinerManager {
             Self::log_single_hashrate(
                 &hashes_tried,
                 "Current hashrate is".into(),
-                "Workers stalled or crashed. Consider reducing workload and check that your node is synced",
+                "Workers stalled or crashed. Consider reducing workload and check that your node is synced. If this is the first time starting the miner, DAG generation can take up to 10-15 minutes, and the miner will begin hashing after that.",
                 duration,
                 false,
             );
