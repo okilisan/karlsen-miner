@@ -297,9 +297,8 @@ impl MinerManager {
                 }
                 Ok(())
             })()
-            .map_err(|e: Error| {
+            .inspect_err(|e: &Error| {
                 error!("{}: GPU thread crashed: {}", gpu_work.id(), e.to_string());
-                e
             })
         })
     }
@@ -370,9 +369,8 @@ impl MinerManager {
                 }
                 Ok(())
             })()
-            .map_err(|e: Error| {
+            .inspect_err(|e: &Error| {
                 error!("CPU thread crashed: {}", e.to_string());
-                e
             })
         })
     }

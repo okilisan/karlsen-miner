@@ -34,9 +34,8 @@ pub struct Kernel<'kernel> {
 impl<'kernel> Kernel<'kernel> {
     pub fn new(module: Weak<Module>, name: &'kernel str) -> Result<Kernel<'kernel>, Error> {
         let func = Arc::new(unsafe {
-            module.as_ptr().as_ref().unwrap().get_function(name).map_err(|e| {
+            module.as_ptr().as_ref().unwrap().get_function(name).inspect_err(|&e| {
                 error!("Error loading function: {}", e);
-                e
             })?
         });
         let (_, block_size) = func.suggested_launch_configuration(0, 0.into())?;
@@ -55,7 +54,7 @@ impl<'kernel> Kernel<'kernel> {
     }
 
     pub fn set_workload(&mut self, workload: u32) {
-        self.grid_size = (workload + self.block_size - 1) / self.block_size
+        self.grid_size = workload.div_ceil(self.block_size)
     }
 }
 
@@ -212,9 +211,9 @@ const SEED: Hash256 = Hash256([
     0x9b, 0x0e, 0xdf, 0x26, 0x53, 0x98, 0x44, 0xf1, 0x17, 0xad, 0x67, 0x21, 0x19,
 ]);
 
-pub struct CudaGPUWorker<'gpu> {
+pub struct CudaGPUWorker {
     // NOTE: The order is important! context must be closed last
-    heavy_hash_kernel: Kernel<'gpu>,
+    heavy_hash_kernel: Kernel<'static>,
     stream: Stream,
     start_event: Event,
     stop_event: Event,
@@ -236,7 +235,7 @@ pub struct CudaGPUWorker<'gpu> {
     //pub light_cache: *mut Hash512,
 }
 
-impl<'gpu> Worker for CudaGPUWorker<'gpu> {
+impl Worker for CudaGPUWorker {
     fn id(&self) -> String {
         let device = CurrentContext::get_device().unwrap();
         format!("#{} ({})", self.device_id, device.name().unwrap())
@@ -505,7 +504,7 @@ fn read_dataset_from_file(filename: &str, full_dataset_unwrap: &mut Box<[Hash102
     }
 }
 
-impl<'gpu> CudaGPUWorker<'gpu> {
+impl CudaGPUWorker {
     pub fn new(
         device_id: u32,
         workload: f32,
@@ -554,30 +553,30 @@ impl<'gpu> CudaGPUWorker<'gpu> {
         let _module: Arc<Module>;
         info!("Device #{} compute version is {}.{}", device_id, major, minor);
         if major > 8 || (major == 8 && minor >= 6) {
-            _module = Arc::new(Module::from_ptx(PTX_86, &[ModuleJitOption::OptLevel(OptLevel::O4)]).map_err(|e| {
-                error!("Error loading PTX. Make sure you have the updated driver for you devices");
-                e
-            })?);
+            _module =
+                Arc::new(Module::from_ptx(PTX_86, &[ModuleJitOption::OptLevel(OptLevel::O4)]).inspect_err(|_e| {
+                    error!("Error loading PTX. Make sure you have the updated driver for you devices");
+                })?);
         } else if major > 7 || (major == 7 && minor >= 5) {
-            _module = Arc::new(Module::from_ptx(PTX_75, &[ModuleJitOption::OptLevel(OptLevel::O4)]).map_err(|e| {
-                error!("Error loading PTX. Make sure you have the updated driver for you devices");
-                e
-            })?);
+            _module =
+                Arc::new(Module::from_ptx(PTX_75, &[ModuleJitOption::OptLevel(OptLevel::O4)]).inspect_err(|_e| {
+                    error!("Error loading PTX. Make sure you have the updated driver for you devices");
+                })?);
         } else if major > 6 || (major == 6 && minor >= 1) {
-            _module = Arc::new(Module::from_ptx(PTX_61, &[ModuleJitOption::OptLevel(OptLevel::O4)]).map_err(|e| {
-                error!("Error loading PTX. Make sure you have the updated driver for you devices");
-                e
-            })?);
+            _module =
+                Arc::new(Module::from_ptx(PTX_61, &[ModuleJitOption::OptLevel(OptLevel::O4)]).inspect_err(|_e| {
+                    error!("Error loading PTX. Make sure you have the updated driver for you devices");
+                })?);
         } else if major >= 3 {
-            _module = Arc::new(Module::from_ptx(PTX_30, &[ModuleJitOption::OptLevel(OptLevel::O4)]).map_err(|e| {
-                error!("Error loading PTX. Make sure you have the updated driver for you devices");
-                e
-            })?);
+            _module =
+                Arc::new(Module::from_ptx(PTX_30, &[ModuleJitOption::OptLevel(OptLevel::O4)]).inspect_err(|_e| {
+                    error!("Error loading PTX. Make sure you have the updated driver for you devices");
+                })?);
         } else if major >= 2 {
-            _module = Arc::new(Module::from_ptx(PTX_20, &[ModuleJitOption::OptLevel(OptLevel::O4)]).map_err(|e| {
-                error!("Error loading PTX. Make sure you have the updated driver for you devices");
-                e
-            })?);
+            _module =
+                Arc::new(Module::from_ptx(PTX_20, &[ModuleJitOption::OptLevel(OptLevel::O4)]).inspect_err(|_e| {
+                    error!("Error loading PTX. Make sure you have the updated driver for you devices");
+                })?);
         } else {
             return Err("Cuda compute version not supported".into());
         }

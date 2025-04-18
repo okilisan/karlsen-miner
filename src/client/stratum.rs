@@ -190,9 +190,11 @@ impl StratumHandler {
         tokio::spawn(async move { ReceiverStream::new(recv).map(Ok).forward(sink).await });
 
         let share_state = unsafe {
+            #[allow(static_mut_refs)]
             if SHARE_STATS.is_none() {
                 SHARE_STATS = Some(Arc::new(ShareStats::default()));
             }
+            #[allow(static_mut_refs)]
             SHARE_STATS.clone().unwrap()
         };
         let last_stratum_id = Arc::new(AtomicU32::new(0));
