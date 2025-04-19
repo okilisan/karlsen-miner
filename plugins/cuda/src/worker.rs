@@ -408,13 +408,12 @@ fn prebuild_dataset(full_dataset: &mut Box<[Hash1024]>, light_cache: &[Hash512],
 
                     if percent % 5 == 0 {
                         let last = last_percent.load(Ordering::Relaxed);
-                        if percent > last {
-                            if last_percent
+                        if percent > last
+                            && last_percent
                                 .compare_exchange(last, percent, Ordering::Relaxed, Ordering::Relaxed)
                                 .is_ok()
-                            {
-                                info!("DAG Generation: {}%", percent);
-                            }
+                        {
+                            info!("DAG Generation: {}%", percent);
                         }
                     }
                 }

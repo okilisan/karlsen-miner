@@ -244,7 +244,7 @@ impl MinerManager {
                                 None => None,
                             },
                             Err(e) => {
-                                info!("{}: GPU thread crashed: {}", gpu_work.id(), e.to_string());
+                                info!("{}: GPU thread crashed: {}", gpu_work.id(), e);
                                 return Ok(());
                             }
                         };
@@ -267,7 +267,7 @@ impl MinerManager {
                         if let Some(block_seed) = state_ref.generate_block_if_pow(nonces[0]) {
                             match send_channel.blocking_send(block_seed.clone()) {
                                 Ok(()) => block_seed.report_block(),
-                                Err(e) => error!("Failed submitting block: ({})", e.to_string()),
+                                Err(e) => error!("Failed submitting block: ({})", e),
                             };
                             if let BlockSeed::FullBlock(_) = block_seed {
                                 state = None;
@@ -298,7 +298,7 @@ impl MinerManager {
                 Ok(())
             })()
             .inspect_err(|e: &Error| {
-                error!("{}: GPU thread crashed: {}", gpu_work.id(), e.to_string());
+                error!("{}: GPU thread crashed: {}", gpu_work.id(), e);
             })
         })
     }
@@ -327,7 +327,7 @@ impl MinerManager {
                                 None => None,
                             },
                             Err(e) => {
-                                info!("CPU thread crashed: {}", e.to_string());
+                                info!("CPU thread crashed: {}", e);
                                 return Ok(());
                             }
                         };
@@ -345,7 +345,7 @@ impl MinerManager {
                     if let Some(block_seed) = state_ref.generate_block_if_pow(nonce.0) {
                         match send_channel.blocking_send(block_seed.clone()) {
                             Ok(()) => block_seed.report_block(),
-                            Err(e) => error!("Failed submitting block: ({})", e.to_string()),
+                            Err(e) => error!("Failed submitting block: ({})", e),
                         };
                         if let BlockSeed::FullBlock(_) = block_seed {
                             state = None;
@@ -370,7 +370,7 @@ impl MinerManager {
                 Ok(())
             })()
             .inspect_err(|e: &Error| {
-                error!("CPU thread crashed: {}", e.to_string());
+                error!("CPU thread crashed: {}", e);
             })
         })
     }
