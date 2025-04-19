@@ -14,6 +14,8 @@ use std::ffi::CString;
 use std::fs::OpenOptions;
 use std::ops::BitXor;
 use std::path::Path;
+use std::sync::atomic::AtomicUsize;
+use std::sync::atomic::Ordering;
 use std::sync::{Arc, Weak};
 use tiny_keccak::Hasher;
 
@@ -380,36 +382,53 @@ fn build_light_cache(cache: &mut [Hash512]) {
 }
 
 fn prebuild_dataset(full_dataset: &mut Box<[Hash1024]>, light_cache: &[Hash512], num_threads: usize) {
-    //let full_dataset = full_dataset_opt.as_mut().unwrap();
+    info!("Building DAG using {} threads", num_threads);
 
-    if num_threads > 1 {
-        std::thread::scope(|scope| {
-            let mut threads = Vec::with_capacity(num_threads);
+    let total_items = full_dataset.len();
+    let progress = Arc::new(AtomicUsize::new(0));
+    let last_percent = Arc::new(AtomicUsize::new(0));
 
-            let light_cache_slice = &light_cache[0..];
-            let batch_size = full_dataset.len() / num_threads;
-            let chunks = full_dataset.chunks_mut(batch_size);
+    std::thread::scope(|scope| {
+        let mut threads = Vec::with_capacity(num_threads);
 
-            for (index, chunk) in chunks.enumerate() {
-                let start = index * batch_size;
+        let batch_size = full_dataset.len() / num_threads;
+        let chunks = full_dataset.chunks_mut(batch_size);
 
-                let thread_handle = scope.spawn(move || build_dataset_segment(chunk, light_cache_slice, start));
-                threads.push(thread_handle);
-            }
+        for (index, chunk) in chunks.enumerate() {
+            let start = index * batch_size;
+            let progress = Arc::clone(&progress);
+            let last_percent = Arc::clone(&last_percent);
 
-            for handle in threads {
-                handle.join().unwrap();
-            }
-        });
-    } else {
-        build_dataset_segment(&mut full_dataset[0..], light_cache, 0);
-    }
-}
+            let thread_handle = scope.spawn(move || {
+                for (i, item) in chunk.iter_mut().enumerate() {
+                    *item = calculate_dataset_item_1024(light_cache, start + i);
 
-fn build_dataset_segment(dataset_slice: &mut [Hash1024], light_cache: &[Hash512], offset: usize) {
-    for (index, item) in dataset_slice.iter_mut().enumerate() {
-        *item = calculate_dataset_item_1024(light_cache, offset + index);
-    }
+                    let done = progress.fetch_add(1, Ordering::Relaxed) + 1;
+                    let percent = done * 100 / total_items;
+
+                    if percent % 5 == 0 {
+                        let last = last_percent.load(Ordering::Relaxed);
+                        if percent > last {
+                            if last_percent
+                                .compare_exchange(last, percent, Ordering::Relaxed, Ordering::Relaxed)
+                                .is_ok()
+                            {
+                                info!("DAG Generation: {}%", percent);
+                            }
+                        }
+                    }
+                }
+            });
+
+            threads.push(thread_handle);
+        }
+
+        for handle in threads {
+            handle.join().unwrap();
+        }
+    });
+
+    info!("DAG Generation complete");
 }
 
 fn fnv1(u: u32, v: u32) -> u32 {
