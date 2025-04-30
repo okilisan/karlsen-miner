@@ -204,6 +204,7 @@ mod sync {
         thread,
     };
     #[cfg(not(feature = "shuttle"))]
+    #[allow(unused_imports)]
     pub use std::{
         sync::{
             atomic::{AtomicBool, AtomicUsize, Ordering},
