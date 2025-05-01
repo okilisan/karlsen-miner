@@ -442,7 +442,6 @@ impl CudaGPUWorker {
         info!("dataset[42] : {:x?}", host_dataset[42].0);
         info!("dataset[12345] : {:x?}", host_dataset[12345].0);
 
-
         let mut heavy_hash_kernel = Kernel::new(Arc::downgrade(&_module), "heavy_hash")?;
 
         let mut chosen_workload = 0u32;
