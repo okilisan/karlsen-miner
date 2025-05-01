@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use crate::{pow, watch, Error};
 use log::{error, info, warn};
-use rand::{thread_rng, RngCore};
+use rand::{rng, RngCore};
 use tokio::sync::mpsc::Sender;
 use tokio::task::{self, JoinHandle};
 use tokio::time::MissedTickBehavior;
@@ -309,7 +309,7 @@ impl MinerManager {
         mut block_channel: watch::Receiver<Option<WorkerCommand>>,
         hashes_tried: Arc<AtomicU64>,
     ) -> MinerHandler {
-        let mut nonce = Wrapping(thread_rng().next_u64());
+        let mut nonce = Wrapping(rng().next_u64());
         let mut mask = Wrapping(0);
         let mut fixed = Wrapping(0);
         std::thread::spawn(move || {
@@ -436,7 +436,7 @@ mod benches {
     use self::test::{black_box, Bencher};
     use crate::pow::State;
     use crate::proto::{RpcBlock, RpcBlockHeader};
-    use rand::{thread_rng, RngCore};
+    use rand::{rng, RngCore};
 
     #[bench]
     pub fn bench_mining(bh: &mut Bencher) {
@@ -463,7 +463,7 @@ mod benches {
             },
         )
         .unwrap();
-        nonce = thread_rng().next_u64();
+        nonce = rng().next_u64();
         bh.iter(|| {
             for _ in 0..100 {
                 black_box(state.check_pow(nonce));

@@ -22,7 +22,7 @@ use async_trait::async_trait;
 use futures_util::TryStreamExt;
 use log::{error, info, warn};
 use num::Float;
-use rand::{thread_rng, RngCore};
+use rand::{rng, RngCore};
 use statum_codec::NewLineJsonCodec;
 use tokio::sync::mpsc::{self, Sender};
 use tokio::sync::Mutex;
@@ -213,7 +213,7 @@ impl StratumHandler {
             devfund_address: None,
             devfund_percent: 0,
             block_template_ctr: block_template_ctr
-                .unwrap_or_else(|| Arc::new(AtomicU16::new((thread_rng().next_u64() % 10_000u64) as u16))),
+                .unwrap_or_else(|| Arc::new(AtomicU16::new((rng().next_u64() % 10_000u64) as u16))),
             target_pool: Default::default(),
             target_real: Default::default(),
             nonce_mask: 0,
