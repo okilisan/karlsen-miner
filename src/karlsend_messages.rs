@@ -8,15 +8,18 @@ use crate::{
 };
 
 impl KarlsendMessage {
+    #[must_use]
     #[inline(always)]
     pub fn get_info_request() -> Self {
         KarlsendMessage { payload: Some(Payload::GetInfoRequest(GetInfoRequestMessage {})) }
     }
+    #[must_use]
     #[inline(always)]
     pub fn notify_block_added() -> Self {
         KarlsendMessage { payload: Some(Payload::NotifyBlockAddedRequest(NotifyBlockAddedRequestMessage {})) }
     }
 
+    #[must_use]
     #[inline(always)]
     pub fn submit_block(block: RpcBlock) -> Self {
         KarlsendMessage {
@@ -29,29 +32,34 @@ impl KarlsendMessage {
 }
 
 impl From<GetInfoRequestMessage> for KarlsendMessage {
+    #[inline(always)]
     fn from(a: GetInfoRequestMessage) -> Self {
         KarlsendMessage { payload: Some(Payload::GetInfoRequest(a)) }
     }
 }
 impl From<NotifyBlockAddedRequestMessage> for KarlsendMessage {
+    #[inline(always)]
     fn from(a: NotifyBlockAddedRequestMessage) -> Self {
         KarlsendMessage { payload: Some(Payload::NotifyBlockAddedRequest(a)) }
     }
 }
 
 impl From<GetBlockTemplateRequestMessage> for KarlsendMessage {
+    #[inline(always)]
     fn from(a: GetBlockTemplateRequestMessage) -> Self {
         KarlsendMessage { payload: Some(Payload::GetBlockTemplateRequest(a)) }
     }
 }
 
 impl From<NotifyNewBlockTemplateRequestMessage> for KarlsendMessage {
+    #[inline(always)]
     fn from(a: NotifyNewBlockTemplateRequestMessage) -> Self {
         KarlsendMessage { payload: Some(Payload::NotifyNewBlockTemplateRequest(a)) }
     }
 }
 
 impl RpcBlock {
+    #[must_use]
     #[inline(always)]
     pub fn block_hash(&self) -> Option<Hash> {
         let mut hasher = HeaderHasher::new();

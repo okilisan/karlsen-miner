@@ -36,7 +36,6 @@ const WHITELIST: [&str; 2] = ["libkarlsencuda", "karlsencuda"];
 pub mod proto {
     #![allow(clippy::derive_partial_eq_without_eq)]
     tonic::include_proto!("protowire");
-    // include!("protowire.rs"); // FIXME: https://github.com/intellij-rust/intellij-rust/issues/6579
 }
 
 pub type Error = Box<dyn StdError + Send + Sync + 'static>;

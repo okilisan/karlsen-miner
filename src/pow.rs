@@ -157,7 +157,7 @@ impl State {
             let mut block_seed = (*self.block).clone();
             match block_seed {
                 BlockSeed::FullBlock(ref mut block) => {
-                    let header = &mut block.header.as_mut().expect("We checked that a header exists on creation");
+                    let header = block.header.as_mut().expect("We checked that a header exists on creation");
                     header.nonce = nonce;
                 }
                 BlockSeed::PartialBlock { nonce: ref mut header_nonce, ref mut hash, .. } => {

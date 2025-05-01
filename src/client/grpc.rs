@@ -4,8 +4,7 @@ use crate::pow::BlockSeed::{FullBlock, PartialBlock};
 use crate::proto::karlsend_message::Payload;
 use crate::proto::rpc_client::RpcClient;
 use crate::proto::{
-    GetBlockTemplateRequestMessage, GetInfoRequestMessage, KarlsendMessage,
-    NotifyNewBlockTemplateRequestMessage,
+    GetBlockTemplateRequestMessage, GetInfoRequestMessage, KarlsendMessage, NotifyNewBlockTemplateRequestMessage,
 };
 use crate::{miner::MinerManager, Error};
 use async_trait::async_trait;
