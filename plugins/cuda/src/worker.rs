@@ -355,7 +355,7 @@ fn build_dataset_gpu(
 ) -> Result<(), Error> {
     let func = module.get_function("generate_full_dataset_gpu")?;
     let block_size = 256;
-    let grid_size = (FULL_DATASET_NUM_ITEMS as u32 + block_size - 1) / block_size;
+    let grid_size = (FULL_DATASET_NUM_ITEMS).div_ceil(block_size);
 
     unsafe {
         launch!(
@@ -441,7 +441,6 @@ impl CudaGPUWorker {
         info!("dataset[10] : {:x?}", host_dataset[10].0);
         info!("dataset[42] : {:x?}", host_dataset[42].0);
         info!("dataset[12345] : {:x?}", host_dataset[12345].0);
-
 
         let mut heavy_hash_kernel = Kernel::new(Arc::downgrade(&_module), "heavy_hash")?;
 
