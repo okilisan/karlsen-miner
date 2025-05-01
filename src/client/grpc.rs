@@ -19,7 +19,7 @@ use tokio_stream::wrappers::ReceiverStream;
 use tokio_util::sync::{PollSendError, PollSender};
 use tonic::{transport::Channel as TonicChannel, Streaming};
 
-static EXTRA_DATA: &str = concat!(env!("CARGO_PKG_VERSION"), "/", env!("PACKAGE_COMPILE_TIME"));
+static EXTRA_DATA: &str = concat!(env!("CARGO_PKG_VERSION"));
 type BlockHandle = JoinHandle<Result<(), PollSendError<KarlsendMessage>>>;
 
 #[allow(dead_code)]
