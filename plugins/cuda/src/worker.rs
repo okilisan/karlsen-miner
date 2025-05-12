@@ -2,20 +2,15 @@ use crate::{Error, NonceGenEnum};
 use cust::context::CurrentContext;
 use cust::device::DeviceAttribute;
 use cust::function::Function;
-use cust::memory::DeviceCopy;
+use cust::memory::{bytemuck, DeviceCopy};
 use cust::module::{ModuleJitOption, OptLevel};
 use cust::prelude::*;
 use karlsen_miner::xoshiro256starstar::Xoshiro256StarStar;
 use karlsen_miner::Worker;
 use log::{error, info};
-use memmap::MmapOptions;
 use rand::{Fill, RngCore};
 use std::ffi::CString;
-use std::fs::OpenOptions;
 use std::ops::BitXor;
-use std::path::Path;
-use std::sync::atomic::AtomicUsize;
-use std::sync::atomic::Ordering;
 use std::sync::{Arc, Weak};
 use tiny_keccak::Hasher;
 
@@ -50,9 +45,7 @@ impl<'kernel> Kernel<'kernel> {
     }
 
     pub fn get_workload(&self) -> u32 {
-        //self.block_size * self.grid_size
-        //we force workload to 1 for the moment
-        1
+        self.block_size * self.grid_size
     }
 
     pub fn set_workload(&mut self, workload: u32) {
@@ -104,10 +97,6 @@ pub trait HashData {
         u32::from_le_bytes(self.as_bytes()[index * SIZE_U32..index * SIZE_U32 + SIZE_U32].try_into().unwrap())
     }
 
-    fn set_as_u32(&mut self, index: usize, value: u32) {
-        self.as_bytes_mut()[index * SIZE_U32..index * SIZE_U32 + SIZE_U32].copy_from_slice(&value.to_le_bytes())
-    }
-
     #[allow(dead_code)]
     fn get_as_u64(&self, index: usize) -> u64 {
         u64::from_le_bytes(self.as_bytes()[index * SIZE_U64..index * SIZE_U64 + SIZE_U64].try_into().unwrap())
@@ -139,6 +128,13 @@ impl HashData for Hash256 {
 #[repr(C)]
 #[derive(Clone, Copy, Debug, DeviceCopy)]
 pub struct Hash512([u8; 64]);
+unsafe impl bytemuck::Zeroable for Hash512 {}
+
+impl Default for Hash512 {
+    fn default() -> Self {
+        Self([0u8; 64])
+    }
+}
 
 impl HashData for Hash512 {
     fn new() -> Self {
@@ -171,6 +167,13 @@ impl BitXor<&Hash512> for &Hash512 {
 #[repr(C)]
 #[derive(Copy, Clone, Debug, DeviceCopy)]
 pub struct Hash1024([u8; 128]);
+unsafe impl bytemuck::Zeroable for Hash1024 {}
+
+impl Default for Hash1024 {
+    fn default() -> Self {
+        Self([0u8; 128])
+    }
+}
 
 impl HashData for Hash1024 {
     fn new() -> Self {
@@ -186,24 +189,6 @@ impl HashData for Hash1024 {
     }
 }
 
-impl Hash1024 {
-    fn from_512s(first: &Hash512, second: &Hash512) -> Self {
-        let mut hash = Self::new();
-        let (first_half, second_half) = hash.0.split_at_mut(first.0.len());
-        first_half.copy_from_slice(&first.0);
-        second_half.copy_from_slice(&second.0);
-
-        hash
-    }
-    fn from_bytes(bytes: &[u8]) -> Self {
-        let mut array = [0u8; 128];
-        array.copy_from_slice(bytes); // Ensure this does not panic by validating input length.
-        Hash1024(array)
-    }
-}
-
-const FNV_PRIME: u32 = 0x01000193;
-const FULL_DATASET_ITEM_PARENTS: u32 = 512;
 const LIGHT_CACHE_ROUNDS: i32 = 3;
 
 const LIGHT_CACHE_NUM_ITEMS: u32 = 1179641;
@@ -226,15 +211,11 @@ pub struct CudaGPUWorker {
 
     cache2: DeviceBuffer<Hash512>,
     dataset2: DeviceBuffer<Hash1024>,
-    //cache2_ptr: DevicePointer<Hash512>,
-    //dataset2_ptr: DevicePointer<Hash1024>,
     device_id: u32,
     pub workload: usize,
     _context: Context,
 
     random: NonceGenEnum,
-    //pub full_dataset: *mut Hash1024,
-    //pub light_cache: *mut Hash512,
 }
 
 impl Worker for CudaGPUWorker {
@@ -244,41 +225,19 @@ impl Worker for CudaGPUWorker {
     }
 
     fn load_block_constants(&mut self, hash_header: &[u8; 72], matrix: &[[u16; 64]; 64], target: &[u64; 4]) {
-        //info!("load_block_constants: debug1 ");
         let u8matrix: Arc<[[u8; 64]; 64]> = Arc::new(matrix.map(|row| row.map(|v| v as u8)));
-        //info!("load_block_constants: debug2 ");
         let mut hash_header_gpu = self._module.get_global::<[u8; 72]>(&CString::new("hash_header").unwrap()).unwrap();
-        //info!("load_block_constants: debug3 ");
         hash_header_gpu.copy_from(hash_header).map_err(|e| e.to_string()).unwrap();
-        //info!("load_block_constants: debug4 ");
 
         let mut matrix_gpu = self._module.get_global::<[[u8; 64]; 64]>(&CString::new("matrix").unwrap()).unwrap();
-        //info!("load_block_constants: debug5 ");
         matrix_gpu.copy_from(&u8matrix).map_err(|e| e.to_string()).unwrap();
-        //info!("load_block_constants: debug6 ");
 
         let mut target_gpu = self._module.get_global::<[u64; 4]>(&CString::new("target").unwrap()).unwrap();
-        //info!("load_block_constants: debug7 ");
         target_gpu.copy_from(target).map_err(|e| e.to_string()).unwrap();
-        //info!("load_block_constants: debug8 ");
-
-        //let mut data = DeviceBuffer::from_slice(&vec![hash1024 { bytes: [0; 128] }; FULL_DATASET_NUM_ITEMS]);
-
-        //let u8cache: Arc<[u8; 10]> = Arc::new([0; 10]);
-        //let mut data = DeviceBuffer::from_slice(&vec![hash512 { bytes: [0; 64] }; LIGHT_CACHE_NUM_ITEMS]);
-        //self.cache = DeviceBuffer::from_slice(&vec![hash512 { bytes: [0; 64] }; LIGHT_CACHE_NUM_ITEMS]);
-        /*
-        info!("load_block_constants: debug8.1 ");
-        let mut cache_gpu = self._module.get_global::<[DeviceBuffer<hash512>; LIGHT_CACHE_NUM_ITEMS]>(&CString::new("cache_test").unwrap()).unwrap();
-        info!("load_block_constants: debug9 ");
-        cache_gpu.copy_from(&data).map_err(|e| e.to_string()).unwrap();
-        info!("load_block_constants: debug10 ");
-        */
     }
 
     #[inline(always)]
     fn calculate_hash(&mut self, _nonces: Option<&Vec<u64>>, nonce_mask: u64, nonce_fixed: u64) {
-        //info!("calculate_hash: debug1 ");
         let func = &self.heavy_hash_kernel.func;
         let stream = &self.stream;
         let random: u8 = match self.random {
@@ -289,15 +248,7 @@ impl Worker for CudaGPUWorker {
             NonceGenEnum::Xoshiro => 1,
         };
 
-        //self.light_cache = vec![Hash512::new(); LIGHT_CACHE_NUM_ITEMS as usize].into_boxed_slice();
-        //self.full_dataset = vec![Hash1024::new(); FULL_DATASET_NUM_ITEMS as usize].into_boxed_slice();
-
-        //info!("calculate_hash: debug2 ");
         self.start_event.record(stream).unwrap();
-        //info!("calculate_hash: debug3 cache size : {}", self.cache2.len());
-        //info!("calculate_hash: debug3 dataset size : {}", self.dataset2.len());
-
-        //info!("calculate_hash: debug3 dataset[10] : {:?}", self.dataset.index(10));
         unsafe {
             launch!(
                 func<<<
@@ -312,15 +263,11 @@ impl Worker for CudaGPUWorker {
                     self.final_nonce_buff.as_device_ptr(),
                     self.dataset2.as_device_ptr(),
                     self.cache2.as_device_ptr(),
-                    //self.cache2_ptr.as_raw(),
-                    //self.dataset2_ptr.as_raw(),
                 )
             )
             .unwrap(); // We see errors in sync
         }
-        //info!("calculate_hash: debug4 ");
         self.stop_event.record(stream).unwrap();
-        //info!("calculate_hash: debug5 ");
     }
 
     #[inline(always)]
@@ -356,7 +303,7 @@ pub fn keccak(out: &mut [u8], data: &[u8]) {
     hasher.finalize(out);
 }
 
-fn build_light_cache(cache: &mut [Hash512]) {
+fn build_light_cache_cpu(cache: &mut [Hash512]) {
     let mut item: Hash512 = Hash512::new();
     keccak(&mut item.0, &SEED.0);
     cache[0] = item;
@@ -381,145 +328,47 @@ fn build_light_cache(cache: &mut [Hash512]) {
     }
 }
 
-fn prebuild_dataset(full_dataset: &mut Box<[Hash1024]>, light_cache: &[Hash512], num_threads: usize) {
-    info!("Building DAG using {} threads", num_threads);
+/* UNUSED */
+/*
+fn build_light_cache_gpu(
+    cache_out: &mut DeviceBuffer<Hash512>,
+    module: &Module,
+    stream: &Stream,
+) -> Result<(), Error> {
+    let func = module.get_function("build_light_cache_gpu")?;
+    let block_size = 256;
+    let grid_size = (LIGHT_CACHE_NUM_ITEMS as u32 + block_size - 1) / block_size;
 
-    let total_items = full_dataset.len();
-    let progress = Arc::new(AtomicUsize::new(0));
-    let last_percent = Arc::new(AtomicUsize::new(0));
-
-    std::thread::scope(|scope| {
-        let mut threads = Vec::with_capacity(num_threads);
-
-        let batch_size = full_dataset.len() / num_threads;
-        let chunks = full_dataset.chunks_mut(batch_size);
-
-        for (index, chunk) in chunks.enumerate() {
-            let start = index * batch_size;
-            let progress = Arc::clone(&progress);
-            let last_percent = Arc::clone(&last_percent);
-
-            let thread_handle = scope.spawn(move || {
-                for (i, item) in chunk.iter_mut().enumerate() {
-                    *item = calculate_dataset_item_1024(light_cache, start + i);
-
-                    let done = progress.fetch_add(1, Ordering::Relaxed) + 1;
-                    let percent = done * 100 / total_items;
-
-                    if percent % 5 == 0 {
-                        let last = last_percent.load(Ordering::Relaxed);
-                        if percent > last
-                            && last_percent
-                                .compare_exchange(last, percent, Ordering::Relaxed, Ordering::Relaxed)
-                                .is_ok()
-                        {
-                            info!("DAG Generation: {}%", percent);
-                        }
-                    }
-                }
-            });
-
-            threads.push(thread_handle);
-        }
-
-        for handle in threads {
-            handle.join().unwrap();
-        }
-    });
-
-    info!("DAG Generation complete");
+    unsafe {
+        launch!(func<<<grid_size, block_size, 0, stream>>>(cache_out.as_device_ptr()))?;
+    }
+    stream.synchronize()?;
+    Ok(())
 }
+*/
 
-fn fnv1(u: u32, v: u32) -> u32 {
-    (u * FNV_PRIME) ^ v
-}
+fn build_dataset_gpu(
+    dataset_out: &mut DeviceBuffer<Hash1024>,
+    cache_in: &DeviceBuffer<Hash512>,
+    module: &Module,
+    stream: &Stream,
+) -> Result<(), Error> {
+    let func = module.get_function("generate_full_dataset_gpu")?;
+    let block_size = 256;
+    let grid_size = (FULL_DATASET_NUM_ITEMS).div_ceil(block_size);
 
-fn fnv1_512(u: Hash512, v: Hash512) -> Hash512 {
-    let mut r = Hash512::new();
-
-    for i in 0..r.0.len() / SIZE_U32 {
-        r.set_as_u32(i, fnv1(u.get_as_u32(i), v.get_as_u32(i)));
+    unsafe {
+        launch!(
+            func<<<grid_size, block_size, 0, stream>>>(
+                LIGHT_CACHE_NUM_ITEMS as i64,
+                cache_in.as_device_ptr(),
+                FULL_DATASET_NUM_ITEMS as i64,
+                dataset_out.as_device_ptr()
+            )
+        )?;
     }
-
-    r
-}
-
-fn calculate_dataset_item_1024(light_cache: &[Hash512], index: usize) -> Hash1024 {
-    let seed0 = (index * 2) as u32;
-    let seed1 = seed0 + 1;
-
-    let mut mix0 = light_cache[(seed0 % LIGHT_CACHE_NUM_ITEMS) as usize];
-    let mut mix1 = light_cache[(seed1 % LIGHT_CACHE_NUM_ITEMS) as usize];
-
-    let mix0_seed = mix0.get_as_u32(0) ^ seed0;
-    let mix1_seed = mix1.get_as_u32(0) ^ seed1;
-
-    mix0.set_as_u32(0, mix0_seed);
-    mix1.set_as_u32(0, mix1_seed);
-
-    keccak_in_place(&mut mix0.0);
-    keccak_in_place(&mut mix1.0);
-
-    let num_words: u32 = (std::mem::size_of_val(&mix0) / SIZE_U32) as u32;
-    for j in 0..FULL_DATASET_ITEM_PARENTS {
-        let t0 = fnv1(seed0 ^ j, mix0.get_as_u32((j % num_words) as usize));
-        let t1 = fnv1(seed1 ^ j, mix1.get_as_u32((j % num_words) as usize));
-        mix0 = fnv1_512(mix0, light_cache[(t0 % LIGHT_CACHE_NUM_ITEMS) as usize]);
-        mix1 = fnv1_512(mix1, light_cache[(t1 % LIGHT_CACHE_NUM_ITEMS) as usize]);
-    }
-
-    keccak_in_place(&mut mix0.0);
-    keccak_in_place(&mut mix1.0);
-
-    Hash1024::from_512s(&mix0, &mix1)
-}
-
-fn save_dataset_to_file(full_dataset_unwrap: &[Hash1024], filename: &str) {
-    let total_size = std::mem::size_of_val(full_dataset_unwrap);
-    let file = OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open(filename)
-        .unwrap_or_else(|_| panic!("Failed to open or create the file"));
-
-    file.set_len(total_size as u64).expect("Failed to set file length");
-
-    let mut mmap = unsafe { MmapOptions::new().map_mut(&file).expect("Failed to memory-map the file") };
-
-    for (i, hash) in full_dataset_unwrap.iter().enumerate() {
-        let offset = i * std::mem::size_of::<Hash1024>();
-        mmap[offset..offset + std::mem::size_of::<Hash1024>()].copy_from_slice(hash.as_bytes());
-    }
-
-    mmap.flush().expect("Failed to flush memory map to disk");
-}
-
-fn read_dataset_from_file(filename: &str, full_dataset_unwrap: &mut Box<[Hash1024]>) {
-    if !Path::new(filename).exists() {
-        panic!("File does not exist");
-    }
-
-    let file =
-        OpenOptions::new().read(true).open(filename).unwrap_or_else(|_| panic!("Failed to open the file for reading"));
-
-    let mmap = unsafe { MmapOptions::new().map(&file).expect("Failed to memory-map the file for reading") };
-    let item_size = std::mem::size_of::<Hash1024>();
-    if mmap.len() % item_size != 0 {
-        panic!("File size is not a multiple of Hash1024 size");
-    }
-
-    let num_items = mmap.len() / item_size;
-    if num_items != full_dataset_unwrap.len() {
-        panic!("Mismatch between file data size and provided buffer size");
-    }
-
-    for i in 0..num_items {
-        let start = i * item_size;
-        let end = start + item_size;
-        full_dataset_unwrap[i] = Hash1024::from_bytes(&mmap[start..end]);
-    }
+    stream.synchronize()?;
+    Ok(())
 }
 
 impl CudaGPUWorker {
@@ -538,33 +387,6 @@ impl CudaGPUWorker {
         let device = Device::get_device(device_id).unwrap();
         let _context = Context::new(device)?;
         _context.set_flags(sync_flag)?;
-
-        let mut light_cache = vec![Hash512::new(); LIGHT_CACHE_NUM_ITEMS as usize].into_boxed_slice();
-        build_light_cache(&mut light_cache);
-        //cache.copy_from(&light_cache)?;
-        let cache2 = DeviceBuffer::from_slice(&light_cache).unwrap();
-
-        info!("light_cache[10] : {:x?}", &light_cache[10].as_bytes());
-        info!("light_cache[42] : {:x?}", &light_cache[42].as_bytes());
-
-        let mut full_dataset = Some(vec![Hash1024::new(); FULL_DATASET_NUM_ITEMS as usize].into_boxed_slice());
-        let full_dataset_uwrap = full_dataset.as_mut().unwrap();
-        //build_dataset_segment(&mut full_dataset_uwrap[0..], &light_cache, 0);
-        if Path::new("dataset.bin").exists() {
-            read_dataset_from_file("dataset.bin", full_dataset_uwrap);
-        } else {
-            prebuild_dataset(full_dataset_uwrap, &light_cache, 8);
-            //save_dataset_to_file(&full_dataset_uwrap, "hashes.dat")
-            save_dataset_to_file(full_dataset_uwrap, "dataset.bin");
-        }
-
-        info!("dataset[10] : {:x?}", full_dataset_uwrap[10].as_bytes());
-        info!("dataset[42] : {:x?}", full_dataset_uwrap[42].as_bytes());
-        info!("dataset[12345] : {:x?}", full_dataset_uwrap[12345].as_bytes());
-
-        //dataset.copy_from(&full_dataset_uwrap)?;
-        let dataset2 = DeviceBuffer::from_slice(full_dataset_uwrap).unwrap();
-        //let dataset2_ptr: DevicePointer<Hash1024> = dataset2.as_device_ptr();
 
         let major = device.get_attribute(DeviceAttribute::ComputeCapabilityMajor)?;
         let minor = device.get_attribute(DeviceAttribute::ComputeCapabilityMinor)?;
@@ -600,6 +422,25 @@ impl CudaGPUWorker {
         }
 
         let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
+
+        let mut light_cache = vec![Hash512::default(); LIGHT_CACHE_NUM_ITEMS.try_into().unwrap()];
+        build_light_cache_cpu(&mut light_cache);
+        let cache2 = DeviceBuffer::<Hash512>::from_slice(&light_cache)?;
+
+        // debug light cache
+        info!("light_cache[10] : {:x?}", light_cache[10].0);
+        info!("light_cache[42] : {:x?}", light_cache[42].0);
+
+        info!("Generating DAG on GPU #{} VRAM, please wait ...", device_id);
+        let mut dataset2 = DeviceBuffer::<Hash1024>::zeroed(FULL_DATASET_NUM_ITEMS.try_into().unwrap())?;
+        build_dataset_gpu(&mut dataset2, &cache2, &_module, &stream)?;
+
+        // debug dataset
+        let mut host_dataset = vec![Hash1024::default(); FULL_DATASET_NUM_ITEMS.try_into().unwrap()];
+        dataset2.copy_to(&mut host_dataset)?;
+        info!("dataset[10] : {:x?}", host_dataset[10].0);
+        info!("dataset[42] : {:x?}", host_dataset[42].0);
+        info!("dataset[12345] : {:x?}", host_dataset[12345].0);
 
         let mut heavy_hash_kernel = Kernel::new(Arc::downgrade(&_module), "heavy_hash")?;
 

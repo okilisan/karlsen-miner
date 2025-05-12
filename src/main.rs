@@ -8,7 +8,7 @@ use std::ffi::OsStr;
 use clap::{App, FromArgMatches, IntoApp};
 use karlsen_miner::PluginManager;
 use log::{error, info};
-use rand::{thread_rng, RngCore};
+use rand::{rng, RngCore};
 use std::fs;
 use std::sync::atomic::AtomicU16;
 use std::sync::Arc;
@@ -36,7 +36,6 @@ const WHITELIST: [&str; 2] = ["libkarlsencuda", "karlsencuda"];
 pub mod proto {
     #![allow(clippy::derive_partial_eq_without_eq)]
     tonic::include_proto!("protowire");
-    // include!("protowire.rs"); // FIXME: https://github.com/intellij-rust/intellij-rust/issues/6579
 }
 
 pub type Error = Box<dyn StdError + Send + Sync + 'static>;
@@ -148,7 +147,7 @@ async fn main() -> Result<(), Error> {
         return Err("No workers specified".into());
     }
 
-    let block_template_ctr = Arc::new(AtomicU16::new((thread_rng().next_u64() % 10_000u64) as u16));
+    let block_template_ctr = Arc::new(AtomicU16::new((rng().next_u64() % 10_000u64) as u16));
     if opt.devfund_percent > 0 {
         info!(
             "devfund enabled, mining {}.{}% of the time to devfund address: {} ",

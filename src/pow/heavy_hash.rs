@@ -114,8 +114,8 @@ impl Matrix {
             let mut sum1 = 0;
             let mut sum2 = 0;
             for (j, &elem) in vec.iter().enumerate() {
-                sum1 += self.0[2 * i][j] * (elem as u16);
-                sum2 += self.0[2 * i + 1][j] * (elem as u16);
+                sum1 += self.0[2 * i][j] * u16::from(elem);
+                sum2 += self.0[2 * i + 1][j] * u16::from(elem);
             }
             ((sum1 >> 10) << 4) as u8 | (sum2 >> 10) as u8
         });

@@ -18,9 +18,14 @@ typedef union _uint256_t {
 #define HALF_MATRIX_SIZE 32
 #define QUARTER_MATRIX_SIZE 16
 #define HASH_HEADER_SIZE 72
+#define LIGHT_CACHE_NUM_ITEMS 1179641
 
 #define RANDOM_LEAN 0
 #define RANDOM_XOSHIRO 1
+
+DEV_INLINE void keccak_in_place(uint8_t* data) {
+    SHA3_512((uint2*)data);
+}
 
 #define LT_U256(X,Y) (X.number[3] != Y.number[3] ? X.number[3] < Y.number[3] : X.number[2] != Y.number[2] ? X.number[2] < Y.number[2] : X.number[1] != Y.number[1] ? X.number[1] < Y.number[1] : X.number[0] < Y.number[0])
 
@@ -55,6 +60,45 @@ __device__ __inline__ void amul4bit(uint32_t packed_vec1[32], uint32_t packed_ve
     }
 
     *ret = res;
+}
+
+extern "C" __global__ void generate_full_dataset_gpu(
+    int64_t light_cache_num_items,
+    hash512* light_cache,
+    int64_t full_dataset_num_items,
+    hash1024* full_dataset
+) {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index % 1000000 == 0 && threadIdx.x == 0) {
+        printf("[GPU] Generating DAG item %d / %lld\n", index, full_dataset_num_items);
+    }
+    if (index >= full_dataset_num_items) return;
+
+    fishhash_context ctx = {light_cache_num_items, light_cache, full_dataset_num_items, full_dataset};
+    full_dataset[index] = calculate_dataset_item_1024(ctx, index);
+}
+
+extern "C" __global__ void build_light_cache_gpu(hash512* cache_out) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= LIGHT_CACHE_NUM_ITEMS) return;
+
+    __shared__ hash512 prev;
+
+    if (i == 0) {
+        uint8_t seed[32] = {
+            0xeb, 0x01, 0x63, 0xae, 0xf2, 0xab, 0x1c, 0x5a, 0x66, 0x31, 0x0c, 0x1c, 0x14, 0xd6, 0x0f, 0x42,
+            0x55, 0xa9, 0xb3, 0x9b, 0x0e, 0xdf, 0x26, 0x53, 0x98, 0x44, 0xf1, 0x17, 0xad, 0x67, 0x21, 0x19
+        };
+        memset(prev.bytes, 0, 64);
+        memcpy(prev.bytes, seed, 32);
+        keccak_in_place(prev.bytes);
+        cache_out[0] = prev;
+    } else {
+        __syncthreads();
+        hash512 item = cache_out[i - 1];
+        keccak_in_place(item.bytes);
+        cache_out[i] = item;
+    }
 }
 
 extern "C" {
