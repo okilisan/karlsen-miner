@@ -123,7 +123,6 @@ impl State {
     }
 
     #[inline(always)]
-
     pub fn calculate_pow(&self, nonce: u64, use_dataset: bool) -> Uint256 {
         // Step 1: PRE_POW_HASH || TIMESTAMP || padding || NONCE → Blake3
 
