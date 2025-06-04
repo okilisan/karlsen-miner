@@ -224,13 +224,9 @@ impl Worker for CudaGPUWorker {
         format!("#{} ({})", self.device_id, device.name().unwrap())
     }
 
-    fn load_block_constants(&mut self, hash_header: &[u8; 72], matrix: &[[u16; 64]; 64], target: &[u64; 4]) {
-        let u8matrix: Arc<[[u8; 64]; 64]> = Arc::new(matrix.map(|row| row.map(|v| v as u8)));
+    fn load_block_constants(&mut self, hash_header: &[u8; 72], target: &[u64; 4]) {
         let mut hash_header_gpu = self._module.get_global::<[u8; 72]>(&CString::new("hash_header").unwrap()).unwrap();
         hash_header_gpu.copy_from(hash_header).map_err(|e| e.to_string()).unwrap();
-
-        let mut matrix_gpu = self._module.get_global::<[[u8; 64]; 64]>(&CString::new("matrix").unwrap()).unwrap();
-        matrix_gpu.copy_from(&u8matrix).map_err(|e| e.to_string()).unwrap();
 
         let mut target_gpu = self._module.get_global::<[u64; 4]>(&CString::new("target").unwrap()).unwrap();
         target_gpu.copy_from(target).map_err(|e| e.to_string()).unwrap();
