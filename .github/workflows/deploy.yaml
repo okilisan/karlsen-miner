@@ -49,6 +49,7 @@ jobs:
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
           use-github-cache: false
+          use-local-cache: false
 
       - name: Build on Linux GNU
         if: matrix.os == 'ubuntu-22.04'

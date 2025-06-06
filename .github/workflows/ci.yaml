@@ -124,6 +124,7 @@ jobs:
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
           use-github-cache: false
+          use-local-cache: false
 
       - name: Cache cargo bin
         uses: actions/cache@v4
@@ -227,6 +228,7 @@ jobs:
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
           use-github-cache: false
+          use-local-cache: false
 
       - name: Cache cargo bin
         uses: actions/cache@v4
