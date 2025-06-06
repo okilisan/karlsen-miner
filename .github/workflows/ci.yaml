@@ -123,6 +123,7 @@ jobs:
           cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
+          use-github-cache: false
 
       - name: Cache cargo bin
         uses: actions/cache@v4
@@ -225,6 +226,7 @@ jobs:
           cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
+          use-github-cache: false
 
       - name: Cache cargo bin
         uses: actions/cache@v4
