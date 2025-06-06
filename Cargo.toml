@@ -36,7 +36,6 @@ blake2b_simd = "1.0.0"
 clap = { version = "3.0", features = ["color", "derive"]}
 log = "0.4"
 env_logger = "0.11"
-keccak = { version = "0.1", optional = true }
 parking = { package = "parking_lot", version = "0.12", optional = true }
 shuttle = { version = "0.8", optional = true }
 libloading = "0.8.6"
@@ -53,17 +52,13 @@ hex = "0.4"
 time = { version = "0.3", features = ["formatting", "macros"] }
 
 [features]
-default = ["keccak?/asm", "parking_lot"]
+default = ["parking_lot"]
 parking_lot = ["parking", "tokio/parking_lot"]
 bench = []
-no-asm = ["keccak"]
 
 [target.'cfg(target_os = "windows")'.dependencies]
 kernel32-sys = "0.2"
 win32console = "0.1"
-
-[target.'cfg(not(target_arch = "x86_64"))'.dependencies]
-keccak = "0.1"
 
 [profile.release]
 lto = true
@@ -74,9 +69,6 @@ strip = true
 tonic-build = { version = "0.8", default-features = false, features = ["prost", "transport"] }
 cc = "1"
 time = { version = "0.3", features = ["formatting"] }
-
-[dev-dependencies]
-sha3 = { git = "https://github.com/elichai/hashes", branch = "cSHAKE" }
 
 [workspace]
 members = ["plugins/*"]

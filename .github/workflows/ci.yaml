@@ -183,9 +183,6 @@ jobs:
       - name: Run cargo test regular features
         run: cargo test -p karlsen-miner
 
-      - name: Run cargo test no asm
-        run: cargo test -p karlsen-miner --features=no-asm
-
       - name: Run cargo test shuttle
         run: cargo test -p karlsen-miner --no-default-features --features=shuttle
 
@@ -287,9 +284,6 @@ jobs:
 
       - name: Run cargo test regular features
         run: cargo test -p karlsen-miner --release
-
-      - name: Run cargo test release no asm
-        run: cargo test -p karlsen-miner --features=no-asm --release
 
       - name: Run cargo test release shuttle
         run: cargo test -p karlsen-miner --no-default-features --features=shuttle --release
