@@ -19,7 +19,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install cuda
-        uses: Jimver/cuda-toolkit@master
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
@@ -110,7 +110,7 @@ jobs:
 
       - name: Install CUDA Linux
         if: runner.os == 'Linux'
-        uses: Jimver/cuda-toolkit@master
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
@@ -118,13 +118,11 @@ jobs:
 
       - name: Install CUDA Windows
         if: runner.os == 'Windows'
-        uses: Jimver/cuda-toolkit@master
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
-          use-github-cache: false
-          use-local-cache: false
 
       - name: Cache cargo bin
         uses: actions/cache@v4
@@ -214,7 +212,7 @@ jobs:
 
       - name: Install CUDA Linux
         if: runner.os == 'Linux'
-        uses: Jimver/cuda-toolkit@master
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
@@ -222,13 +220,11 @@ jobs:
 
       - name: Install CUDA Windows
         if: runner.os == 'Windows'
-        uses: Jimver/cuda-toolkit@master
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
           sub-packages: '["nvcc", "cudart"]'
-          use-github-cache: false
-          use-local-cache: false
 
       - name: Cache cargo bin
         uses: actions/cache@v4
@@ -311,7 +307,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install cuda
-        uses: Jimver/cuda-toolkit@master
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
