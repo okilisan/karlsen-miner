@@ -385,7 +385,7 @@ impl MinerManager {
             Self::log_single_hashrate(
                 &hashes_tried,
                 "Current hashrate is".into(),
-                "Workers stalled or crashed. Consider reducing workload and check that your node is synced. If this is the first time starting the miner, DAG generation can take up to 10-15 minutes, and the miner will begin hashing after that.",
+                "Workers stalled or crashed. Consider reducing workload and check that your node is synced. If this is the first time starting the miner, DAG generation can take up to a few minutes and the miner will begin hashing after that.",
                 duration,
                 false,
             );
