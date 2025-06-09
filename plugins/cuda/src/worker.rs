@@ -352,6 +352,7 @@ fn build_dataset_gpu(
     let func = module.get_function("generate_full_dataset_gpu")?;
     let block_size = 256;
     let grid_size = (FULL_DATASET_NUM_ITEMS).div_ceil(block_size);
+    let start = std::time::Instant::now();
 
     unsafe {
         launch!(
@@ -364,6 +365,7 @@ fn build_dataset_gpu(
         )?;
     }
     stream.synchronize()?;
+    info!("DAG built in {:.1}s", start.elapsed().as_secs_f32());
     Ok(())
 }
 

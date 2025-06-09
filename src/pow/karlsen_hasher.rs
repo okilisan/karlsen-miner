@@ -1,8 +1,9 @@
 #![allow(clippy::unreadable_literal)]
 use crate::HashKls;
+use log::info;
 use std::ops::BitXor;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use tiny_keccak::Hasher;
 
 use lazy_static::lazy_static;
@@ -39,18 +40,22 @@ pub trait HashData {
     fn as_bytes(&self) -> &[u8];
     fn as_bytes_mut(&mut self) -> &mut [u8];
 
+    #[inline(always)]
     fn get_as_u32(&self, index: usize) -> u32 {
         u32::from_le_bytes(self.as_bytes()[index * SIZE_U32..index * SIZE_U32 + SIZE_U32].try_into().unwrap())
     }
 
+    #[inline(always)]
     fn set_as_u32(&mut self, index: usize, value: u32) {
         self.as_bytes_mut()[index * SIZE_U32..index * SIZE_U32 + SIZE_U32].copy_from_slice(&value.to_le_bytes())
     }
 
+    #[inline(always)]
     fn get_as_u64(&self, index: usize) -> u64 {
         u64::from_le_bytes(self.as_bytes()[index * SIZE_U64..index * SIZE_U64 + SIZE_U64].try_into().unwrap())
     }
 
+    #[inline(always)]
     fn set_as_u64(&mut self, index: usize, value: u64) {
         self.as_bytes_mut()[index * SIZE_U64..index * SIZE_U64 + SIZE_U64].copy_from_slice(&value.to_le_bytes())
     }
@@ -60,18 +65,22 @@ pub trait HashData {
 pub struct Hash256([u8; 32]);
 
 impl HashData for Hash256 {
+    #[inline(always)]
     fn new() -> Self {
         Self([0; 32])
     }
 
+    #[inline(always)]
     fn from_hash(hash: &HashKls) -> Self {
         Self(hash.0)
     }
 
+    #[inline(always)]
     fn as_bytes(&self) -> &[u8] {
         &self.0
     }
 
+    #[inline(always)]
     fn as_bytes_mut(&mut self) -> &mut [u8] {
         &mut self.0
     }
@@ -81,11 +90,13 @@ impl HashData for Hash256 {
 pub struct Hash512([u8; 64]);
 
 impl HashData for Hash512 {
+    #[inline(always)]
     fn new() -> Self {
         Self([0; 64])
     }
 
     //Todo check if filled with 0
+    #[inline(always)]
     fn from_hash(hash: &HashKls) -> Self {
         let mut result = Self::new();
         let (first_half, _) = result.0.split_at_mut(hash.0.len());
@@ -93,10 +104,12 @@ impl HashData for Hash512 {
         result
     }
 
+    #[inline(always)]
     fn as_bytes(&self) -> &[u8] {
         &self.0
     }
 
+    #[inline(always)]
     fn as_bytes_mut(&mut self) -> &mut [u8] {
         &mut self.0
     }
@@ -105,6 +118,7 @@ impl HashData for Hash512 {
 impl BitXor<&Hash512> for &Hash512 {
     type Output = Hash512;
 
+    #[inline(always)]
     fn bitxor(self, rhs: &Hash512) -> Self::Output {
         let mut hash = Hash512::new();
 
@@ -120,11 +134,13 @@ impl BitXor<&Hash512> for &Hash512 {
 pub struct Hash1024([u8; 128]);
 
 impl HashData for Hash1024 {
+    #[inline(always)]
     fn new() -> Self {
         Self([0; 128])
     }
 
     //Todo check if filled with 0
+    #[inline(always)]
     fn from_hash(hash: &HashKls) -> Self {
         let mut result = Self::new();
         let (first_half, _) = result.0.split_at_mut(hash.0.len());
@@ -132,16 +148,19 @@ impl HashData for Hash1024 {
         result
     }
 
+    #[inline(always)]
     fn as_bytes(&self) -> &[u8] {
         &self.0
     }
 
+    #[inline(always)]
     fn as_bytes_mut(&mut self) -> &mut [u8] {
         &mut self.0
     }
 }
 
 impl Hash1024 {
+    #[inline(always)]
     fn from_512s(first: &Hash512, second: &Hash512) -> Self {
         let mut hash = Self::new();
         let (first_half, second_half) = hash.0.split_at_mut(first.0.len());
@@ -158,8 +177,7 @@ pub struct Context {
     //pub full_dataset: Option<Box<[Hash1024]>>,
 }
 
-static mut FULL_DATASET: Option<Box<[Hash1024]>> = None;
-static DATASET_INIT: std::sync::Once = std::sync::Once::new();
+static FULL_DATASET: OnceLock<Box<[Hash1024]>> = OnceLock::new();
 
 lazy_static! {
 static ref LIGHT_CACHE: Box<[Hash512]> = {
@@ -178,35 +196,23 @@ static ref LIGHT_CACHE: Box<[Hash512]> = {
 };
 }
 
-pub fn initialize_dag() {
-    DATASET_INIT.call_once(|| {
-        println!("prebuilding_dataset...");
-        let mut full_dataset = vec![Hash1024::new(); FULL_DATASET_NUM_ITEMS as usize].into_boxed_slice();
-        prebuild_dataset(&mut full_dataset, &LIGHT_CACHE, 8);
-
-        unsafe {
-            FULL_DATASET = Some(full_dataset);
-        }
-        println!("prebuilding_dataset done");
-    });
-}
-
+#[inline(always)]
 fn get_dataset_item(index: usize) -> Hash1024 {
-    unsafe {
-        match (*std::ptr::addr_of!(FULL_DATASET)).as_ref() {
-            Some(dataset) => dataset[index],
-            None => PowFishHash::calculate_dataset_item_1024(&LIGHT_CACHE, index),
-        }
-    }
+    let dataset = FULL_DATASET.get_or_init(|| {
+        let mut full_dataset = vec![Hash1024::new(); FULL_DATASET_NUM_ITEMS as usize].into_boxed_slice();
+        prebuild_dataset(&mut full_dataset, &LIGHT_CACHE, num_cpus::get_physical());
+        full_dataset
+    });
+    dataset[index]
 }
 
+#[inline(always)]
 fn prebuild_dataset(full_dataset: &mut Box<[Hash1024]>, light_cache: &[Hash512], num_threads: usize) {
-    println!("prebuilding_dataset using {} threads", num_threads);
+    info!("prebuilding dataset using {} threads", num_threads);
+    let start = std::time::Instant::now();
 
     let total_items = full_dataset.len();
     let progress = Arc::new(AtomicUsize::new(0));
-    let last_percent = Arc::new(AtomicUsize::new(0));
-
     std::thread::scope(|scope| {
         let mut threads = Vec::with_capacity(num_threads);
 
@@ -214,26 +220,16 @@ fn prebuild_dataset(full_dataset: &mut Box<[Hash1024]>, light_cache: &[Hash512],
         let chunks = full_dataset.chunks_mut(batch_size);
 
         for (index, chunk) in chunks.enumerate() {
-            let start = index * batch_size;
+            let chunk_start = index * batch_size;
             let progress = Arc::clone(&progress);
-            let last_percent = Arc::clone(&last_percent);
 
             let thread_handle = scope.spawn(move || {
                 for (i, item) in chunk.iter_mut().enumerate() {
-                    *item = PowFishHash::calculate_dataset_item_1024(light_cache, start + i);
-
+                    *item = PowFishHash::calculate_dataset_item_1024(light_cache, chunk_start + i);
                     let done = progress.fetch_add(1, Ordering::Relaxed) + 1;
-                    let percent = done * 100 / total_items;
-
-                    if percent % 5 == 0 {
-                        let last = last_percent.load(Ordering::Relaxed);
-                        if percent > last
-                            && last_percent
-                                .compare_exchange(last, percent, Ordering::Relaxed, Ordering::Relaxed)
-                                .is_ok()
-                        {
-                            println!("dataset generation: {}%", percent);
-                        }
+                    if done % 4_000_000 == 0 {
+                        let percent = done * 100 / total_items;
+                        info!("prebuilding full dataset: {}% ({}/{})", percent, done, total_items);
                     }
                 }
             });
@@ -246,10 +242,11 @@ fn prebuild_dataset(full_dataset: &mut Box<[Hash1024]>, light_cache: &[Hash512],
         }
     });
 
-    println!("dataset generation complete");
+    info!("prebuilding full dataset done in {:.1}s", start.elapsed().as_secs_f64());
 }
 
 impl Context {
+    #[inline(always)]
     fn build_light_cache(cache: &mut [Hash512]) {
         let mut item: Hash512 = Hash512::new();
         PowFishHash::keccak(&mut item.0, &SEED.0);
@@ -277,12 +274,8 @@ impl Context {
 }
 
 impl PowFishHash {
-    #[inline]
-    //pub fn fishhash_kernel(context: &mut Context, seed: &Hash512) -> Hash256 {
+    #[inline(always)]
     pub fn fishhashplus_kernel(seed: &HashKls, use_dataset: bool) -> HashKls {
-        if use_dataset {
-            initialize_dag();
-        }
         let seed_hash512 = Hash512::from_hash(seed);
         let mut mix = Hash1024::from_512s(&seed_hash512, &seed_hash512);
 
@@ -302,10 +295,22 @@ impl PowFishHash {
             let p1 = (mix_group[1] ^ mix_group[4] ^ mix_group[7]) % FULL_DATASET_NUM_ITEMS;
             let p2 = (mix_group[2] ^ mix_group[5] ^ i) % FULL_DATASET_NUM_ITEMS;
 
-            // Use dataset lookup if available, otherwise on-demandMore actions
-            let fetch0 = get_dataset_item(p0 as usize);
-            let mut fetch1 = get_dataset_item(p1 as usize);
-            let mut fetch2 = get_dataset_item(p2 as usize);
+            // Use dataset lookup if available, otherwise light_cache (CPU)
+            let fetch0 = if use_dataset {
+                get_dataset_item(p0 as usize)
+            } else {
+                Self::calculate_dataset_item_1024(&LIGHT_CACHE, p0 as usize)
+            };
+            let mut fetch1 = if use_dataset {
+                get_dataset_item(p1 as usize)
+            } else {
+                Self::calculate_dataset_item_1024(&LIGHT_CACHE, p1 as usize)
+            };
+            let mut fetch2 = if use_dataset {
+                get_dataset_item(p2 as usize)
+            } else {
+                Self::calculate_dataset_item_1024(&LIGHT_CACHE, p2 as usize)
+            };
 
             // Modify fetch1 and fetch2
             for j in 0..32 {
@@ -337,12 +342,14 @@ impl PowFishHash {
         HashKls::from_bytes(mix_hash.0)
     }
 
+    #[inline(always)]
     pub fn keccak(out: &mut [u8], data: &[u8]) {
         let mut hasher = tiny_keccak::Keccak::v512();
         hasher.update(data);
         hasher.finalize(out);
     }
 
+    #[inline(always)]
     fn keccak_in_place(data: &mut [u8]) {
         //TODO remove tiny_keccak with asm keccak
         let mut hasher = tiny_keccak::Keccak::v512();
@@ -350,10 +357,12 @@ impl PowFishHash {
         hasher.finalize(data);
     }
 
+    #[inline(always)]
     fn fnv1(u: u32, v: u32) -> u32 {
         u.wrapping_mul(FNV_PRIME) ^ v
     }
 
+    #[inline(always)]
     fn fnv1_512(u: Hash512, v: Hash512) -> Hash512 {
         let mut r = Hash512::new();
 
@@ -364,6 +373,7 @@ impl PowFishHash {
         r
     }
 
+    #[inline(always)]
     fn calculate_dataset_item_1024(light_cache: &[Hash512], index: usize) -> Hash1024 {
         let seed0 = (index * 2) as u32;
         let seed1 = seed0 + 1;
@@ -396,7 +406,7 @@ impl PowFishHash {
 }
 
 impl PowB3Hash {
-    #[inline]
+    #[inline(always)]
     pub fn new(pre_pow_hash: HashKls, timestamp: u64) -> Self {
         let mut hasher = blake3::Hasher::new();
         hasher.update(&pre_pow_hash.as_bytes());

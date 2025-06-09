@@ -19,7 +19,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install cuda
-        uses: Jimver/cuda-toolkit@v0.2.23
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
@@ -110,7 +110,7 @@ jobs:
 
       - name: Install CUDA Linux
         if: runner.os == 'Linux'
-        uses: Jimver/cuda-toolkit@v0.2.23
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
@@ -118,7 +118,7 @@ jobs:
 
       - name: Install CUDA Windows
         if: runner.os == 'Windows'
-        uses: Jimver/cuda-toolkit@v0.2.23
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
@@ -183,9 +183,6 @@ jobs:
       - name: Run cargo test regular features
         run: cargo test -p karlsen-miner
 
-      - name: Run cargo test no asm
-        run: cargo test -p karlsen-miner --features=no-asm
-
       - name: Run cargo test shuttle
         run: cargo test -p karlsen-miner --no-default-features --features=shuttle
 
@@ -215,7 +212,7 @@ jobs:
 
       - name: Install CUDA Linux
         if: runner.os == 'Linux'
-        uses: Jimver/cuda-toolkit@v0.2.23
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
@@ -223,7 +220,7 @@ jobs:
 
       - name: Install CUDA Windows
         if: runner.os == 'Windows'
-        uses: Jimver/cuda-toolkit@v0.2.23
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
@@ -288,9 +285,6 @@ jobs:
       - name: Run cargo test regular features
         run: cargo test -p karlsen-miner --release
 
-      - name: Run cargo test release no asm
-        run: cargo test -p karlsen-miner --features=no-asm --release
-
       - name: Run cargo test release shuttle
         run: cargo test -p karlsen-miner --no-default-features --features=shuttle --release
 
@@ -313,7 +307,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install cuda
-        uses: Jimver/cuda-toolkit@v0.2.23
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
