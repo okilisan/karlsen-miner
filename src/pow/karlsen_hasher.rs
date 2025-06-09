@@ -275,7 +275,7 @@ impl Context {
 
 impl PowFishHash {
     #[inline(always)]
-    pub fn fishhashplus_kernel(seed: &HashKls) -> HashKls {
+    pub fn fishhashplus_kernel(seed: &HashKls, use_dataset: bool) -> HashKls {
         let seed_hash512 = Hash512::from_hash(seed);
         let mut mix = Hash1024::from_512s(&seed_hash512, &seed_hash512);
 
@@ -295,10 +295,22 @@ impl PowFishHash {
             let p1 = (mix_group[1] ^ mix_group[4] ^ mix_group[7]) % FULL_DATASET_NUM_ITEMS;
             let p2 = (mix_group[2] ^ mix_group[5] ^ i) % FULL_DATASET_NUM_ITEMS;
 
-            // Use dataset lookup if available, otherwise on-demandMore actions
-            let fetch0 = get_dataset_item(p0 as usize);
-            let mut fetch1 = get_dataset_item(p1 as usize);
-            let mut fetch2 = get_dataset_item(p2 as usize);
+            // Use dataset lookup if available, otherwise light_cache (CPU)
+            let fetch0 = if use_dataset {
+                get_dataset_item(p0 as usize)
+            } else {
+                Self::calculate_dataset_item_1024(&LIGHT_CACHE, p0 as usize)
+            };
+            let mut fetch1 = if use_dataset {
+                get_dataset_item(p1 as usize)
+            } else {
+                Self::calculate_dataset_item_1024(&LIGHT_CACHE, p1 as usize)
+            };
+            let mut fetch2 = if use_dataset {
+                get_dataset_item(p2 as usize)
+            } else {
+                Self::calculate_dataset_item_1024(&LIGHT_CACHE, p2 as usize)
+            };
 
             // Modify fetch1 and fetch2
             for j in 0..32 {

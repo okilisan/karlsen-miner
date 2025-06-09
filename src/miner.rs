@@ -264,7 +264,7 @@ impl MinerManager {
 
                     gpu_work.copy_output_to(&mut nonces)?;
                     if nonces[0] != 0 {
-                        if let Some(block_seed) = state_ref.generate_block_if_pow(nonces[0]) {
+                        if let Some(block_seed) = state_ref.generate_block_if_pow(nonces[0], false) {
                             match send_channel.blocking_send(block_seed.clone()) {
                                 Ok(()) => block_seed.report_block(),
                                 Err(e) => error!("Failed submitting block: ({})", e),
@@ -277,7 +277,7 @@ impl MinerManager {
                             worker_hashes_tried.fetch_add(gpu_work.get_workload().try_into().unwrap(), Ordering::AcqRel);
                             continue;
                         } else {
-                            let hash = state_ref.calculate_pow(nonces[0]);
+                            let hash = state_ref.calculate_pow(nonces[0], false);
                             warn!("Something is wrong in GPU results! Got nonce {}, with hash real {:?}  (target: {}*2^196)", nonces[0], hash.0, state_ref.target.0[3]);
                             break;
                         }
@@ -342,7 +342,7 @@ impl MinerManager {
                     };
                     nonce = (nonce & mask) | fixed;
 
-                    if let Some(block_seed) = state_ref.generate_block_if_pow(nonce.0) {
+                    if let Some(block_seed) = state_ref.generate_block_if_pow(nonce.0, true) {
                         match send_channel.blocking_send(block_seed.clone()) {
                             Ok(()) => block_seed.report_block(),
                             Err(e) => error!("Failed submitting block: ({})", e),

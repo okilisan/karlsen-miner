@@ -123,12 +123,12 @@ impl State {
     }
 
     #[inline(always)]
-    pub fn calculate_pow(&self, nonce: u64) -> Uint256 {
+    pub fn calculate_pow(&self, nonce: u64, use_dataset: bool) -> Uint256 {
         // Step 1: PRE_POW_HASH || TIMESTAMP || padding || NONCE → Blake3
 
         let hash: HashKls = self.b3hasher.clone().finalize_with_nonce(nonce);
         //info!("HashKls1-1 = {:?}", hash);
-        let hash = PowFishHash::fishhashplus_kernel(&hash);
+        let hash = PowFishHash::fishhashplus_kernel(&hash, use_dataset);
         //info!("HashKls2 = {:?}", hash);
         let hash = PowB3Hash::hash(hash);
         //info!("HashKls3 = {:?}", hash);
@@ -137,8 +137,8 @@ impl State {
     }
 
     #[inline(always)]
-    pub fn check_pow(&self, nonce: u64) -> bool {
-        let _pow = self.calculate_pow(nonce);
+    pub fn check_pow(&self, nonce: u64, use_dataset: bool) -> bool {
+        let _pow = self.calculate_pow(nonce, use_dataset);
         //let _pow = self.calculate_pow_khashv2plus(nonce);
         if _pow <= self.target {
             info!("Found a block with pow: {:x}", _pow);
@@ -149,8 +149,8 @@ impl State {
     }
 
     #[inline(always)]
-    pub fn generate_block_if_pow(&self, nonce: u64) -> Option<BlockSeed> {
-        self.check_pow(nonce).then(|| {
+    pub fn generate_block_if_pow(&self, nonce: u64, use_dataset: bool) -> Option<BlockSeed> {
+        self.check_pow(nonce, use_dataset).then(|| {
             let mut block_seed = (*self.block).clone();
             match block_seed {
                 BlockSeed::FullBlock(ref mut block) => {
@@ -159,7 +159,7 @@ impl State {
                 }
                 BlockSeed::PartialBlock { nonce: ref mut header_nonce, ref mut hash, .. } => {
                     *header_nonce = nonce;
-                    *hash = Some(format!("{:x}", self.calculate_pow(nonce)))
+                    *hash = Some(format!("{:x}", self.calculate_pow(nonce, use_dataset)))
                 }
             }
             block_seed
