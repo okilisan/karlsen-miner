@@ -18,7 +18,7 @@ jobs:
         if: runner.os == 'Windows'
         run: git config --global core.autocrlf false
 
-      - name: Check out code into the Go module directory
+      - name: Check out code into the module directory
         uses: actions/checkout@v4
 
       - name: Install protoc
@@ -35,7 +35,7 @@ jobs:
 
       - name: Install CUDA Linux
         if: runner.os == 'Linux'
-        uses: Jimver/cuda-toolkit@v0.2.23
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
@@ -43,7 +43,7 @@ jobs:
 
       - name: Install CUDA Windows
         if: runner.os == 'Windows'
-        uses: Jimver/cuda-toolkit@v0.2.23
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
@@ -53,6 +53,7 @@ jobs:
         if: matrix.os == 'ubuntu-22.04'
         # We're using musl to make the binaries statically linked and portable
         run: |
+          sudo apt update && sudo apt upgrade -y
           cargo build --target=x86_64-unknown-linux-gnu --release --all --features ${{ matrix.features }}
           feature_name=${{ matrix.features }}
           asset_name="karlsen-miner-${{ github.event.release.tag_name }}-${feature_name/\//-}-linux-gnu-amd64"
@@ -133,7 +134,7 @@ jobs:
 
       - name: Install CUDA Linux
         if: runner.os == 'Linux'
-        uses: Jimver/cuda-toolkit@v0.2.23
+        uses: Jimver/cuda-toolkit@v0.2.24
         with:
           cuda: '12.5.0'
           method: 'network'
