@@ -32,7 +32,7 @@ mod target;
 mod watch;
 
 //remove the opencl plugin support for the moment
-const WHITELIST: [&str; 2] = ["libkarlsencuda", "karlsencuda"];
+const WHITELIST: [&str; 3] = ["libkarlsencuda", "karlsencuda", "karlsengpt"];
 
 pub mod proto {
     #![allow(clippy::derive_partial_eq_without_eq)]
