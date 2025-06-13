@@ -119,6 +119,7 @@ pub trait Worker {
 
     fn get_workload(&self) -> usize;
     fn copy_output_to(&mut self, nonces: &mut Vec<u64>) -> Result<(), Error>;
+    fn compute_pouw(&self, task: &String) -> Result<String, Error>;
 }
 
 pub fn load_plugins<'help>(

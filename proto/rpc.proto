@@ -675,3 +675,19 @@ message NewBlockTemplateNotificationMessage {
 }
 
 
+// Proof of Useful work PartialBlock
+// 
+message GetPouwTaskRequestMessage {
+  string subnet = 1;
+}
+
+message GetPouwTaskResponseMessage {
+  repeated RpcPouwTask tasks = 1;
+  RPCError error = 1000;
+}
+
+message RpcPouwTask {
+  string id = 1;
+  string data = 2;
+}
+

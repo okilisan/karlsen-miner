@@ -16,6 +16,12 @@ hf-hub = { version = "0.3.2" }
 anyhow = "1.0.86"
 encoding_rs = "0.8.34"
 
+[features]
+cuda = ["llama-cpp-2/cuda"]
+metal =  ["llama-cpp-2/metal"]
+native = ["llama-cpp-2/native"]
+vulkan = ["llama-cpp-2/vulkan"]
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 

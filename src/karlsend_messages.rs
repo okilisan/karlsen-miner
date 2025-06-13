@@ -1,6 +1,9 @@
+use log::info;
+
 use crate::proto::{
-    karlsend_message::Payload, GetBlockTemplateRequestMessage, GetInfoRequestMessage, KarlsendMessage,
-    NotifyBlockAddedRequestMessage, NotifyNewBlockTemplateRequestMessage, RpcBlock, SubmitBlockRequestMessage,
+    karlsend_message::Payload, GetBlockTemplateRequestMessage, GetInfoRequestMessage, GetPouwTaskRequestMessage,
+    KarlsendMessage, NotifyBlockAddedRequestMessage, NotifyNewBlockTemplateRequestMessage, RpcBlock,
+    SubmitBlockRequestMessage,
 };
 use crate::{
     pow::{self, HeaderHasher},
@@ -55,6 +58,14 @@ impl From<NotifyNewBlockTemplateRequestMessage> for KarlsendMessage {
     #[inline(always)]
     fn from(a: NotifyNewBlockTemplateRequestMessage) -> Self {
         KarlsendMessage { payload: Some(Payload::NotifyNewBlockTemplateRequest(a)) }
+    }
+}
+
+impl From<GetPouwTaskRequestMessage> for KarlsendMessage {
+    #[inline(always)]
+    fn from(a: GetPouwTaskRequestMessage) -> Self {
+        info!("GetPouwTaskRequestMessage payload: {:}", a.subnet);
+        KarlsendMessage { payload: Some(Payload::GetPouwTaskRequest(a)) }
     }
 }
 

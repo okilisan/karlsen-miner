@@ -135,6 +135,10 @@ message KarlsendMessage {
     NotifyNewBlockTemplateRequestMessage notifyNewBlockTemplateRequest = 1081;
     NotifyNewBlockTemplateResponseMessage notifyNewBlockTemplateResponse = 1082;
     NewBlockTemplateNotificationMessage newBlockTemplateNotification = 1083;
+
+    GetPouwTaskRequestMessage getPouwTaskRequest = 2000;
+    GetPouwTaskResponseMessage getPouwTaskResponse = 2001;
+
   }
 }
 

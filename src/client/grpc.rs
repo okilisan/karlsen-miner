@@ -4,7 +4,8 @@ use crate::pow::BlockSeed::{FullBlock, PartialBlock};
 use crate::proto::karlsend_message::Payload;
 use crate::proto::rpc_client::RpcClient;
 use crate::proto::{
-    GetBlockTemplateRequestMessage, GetInfoRequestMessage, KarlsendMessage, NotifyNewBlockTemplateRequestMessage,
+    GetBlockTemplateRequestMessage, GetInfoRequestMessage, GetPouwTaskRequestMessage, KarlsendMessage,
+    NotifyNewBlockTemplateRequestMessage,
 };
 use crate::{miner::MinerManager, Error};
 use async_trait::async_trait;
@@ -35,6 +36,7 @@ pub struct KarlsendHandler {
 
     block_channel: Sender<BlockSeed>,
     block_handle: BlockHandle,
+    pouw_loop_handle: JoinHandle<()>,
 }
 
 #[async_trait(?Send)]
@@ -51,6 +53,7 @@ impl Client for KarlsendHandler {
 
     async fn listen(&mut self, miner: &mut MinerManager) -> Result<(), Error> {
         while let Some(msg) = self.stream.message().await? {
+            info!("New message: {:?}", msg);
             match msg.payload {
                 Some(payload) => self.handle_message(payload, miner).await?,
                 None => warn!("karlsend message payload is empty"),
@@ -80,6 +83,7 @@ impl KarlsendHandler {
         send_channel.send(GetInfoRequestMessage {}.into()).await?;
         let stream = client.message_stream(ReceiverStream::new(recv)).await?.into_inner();
         let (block_channel, block_handle) = Self::create_block_channel(send_channel.clone());
+        let pouw_loop_handle = Self::create_pouw_task_loop(send_channel.clone(), "karlsengpt".to_string());
         Ok(Box::new(Self {
             client,
             stream,
@@ -92,6 +96,7 @@ impl KarlsendHandler {
                 .unwrap_or_else(|| Arc::new(AtomicU16::new((rng().next_u64() % 10_000u64) as u16))),
             block_channel,
             block_handle,
+            pouw_loop_handle,
         }))
     }
 
@@ -127,6 +132,27 @@ impl KarlsendHandler {
         self.block_template_ctr.fetch_update(Ordering::SeqCst, Ordering::SeqCst, |v| Some((v + 1) % 10_000)).unwrap();
         self.client_send(GetBlockTemplateRequestMessage { pay_address, extra_data: EXTRA_DATA.into() }).await
     }
+
+    fn create_pouw_task_loop(send_channel: Sender<KarlsendMessage>, subnet: String) -> JoinHandle<()> {
+        tokio::spawn(async move {
+            let mut interval = tokio::time::interval(std::time::Duration::from_secs(1));
+            loop {
+                interval.tick().await;
+
+                if let Err(e) = send_channel.send(GetPouwTaskRequestMessage { subnet: subnet.clone() }.into()).await {
+                    warn!("Failed to send PoUW task request: {e}");
+                }
+            }
+        })
+    }
+
+    /*
+    pub async fn get_pouw_task(&self, subnet: &str) -> Result<(), SendError<KarlsendMessage>> {
+        self.client_send(GetPouwTaskRequestMessage {
+            subnet: subnet.to_string()
+        }).await
+    }
+    */
 
     async fn handle_message(&mut self, msg: Payload, miner: &mut MinerManager) -> Result<(), Error> {
         match msg {
@@ -167,6 +193,17 @@ impl KarlsendHandler {
                 None => info!("Registered for block notifications (upgrade your Karlsend for better experience)"),
                 Some(e) => error!("Failed registering for block notifications: {:?}", e),
             },
+            Payload::GetPouwTaskResponse(msg) => {
+                info!("Get PouwTask response: {:?}", msg);
+                if let Some(e) = msg.error {
+                    return Err(e.message.into());
+                } else {
+                    for task in msg.tasks {
+                        info!("PoUW Task received: id={}, data={}", task.id, task.data);
+                        miner.process_pouw_task(task);
+                    }
+                }
+            }
             msg => info!("got unknown msg: {:?}", msg),
         }
         Ok(())
@@ -175,6 +212,8 @@ impl KarlsendHandler {
 
 impl Drop for KarlsendHandler {
     fn drop(&mut self) {
+        info!("drop from grpc.rs");
         self.block_handle.abort();
+        self.pouw_loop_handle.abort();
     }
 }

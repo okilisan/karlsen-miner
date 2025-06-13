@@ -29,10 +29,7 @@ impl KarlsenGptPlugin {
         //cust::init(CudaFlags::empty())?;
         env_logger::builder().filter_level(LevelFilter::Info).parse_default_env().init();
         Ok(Self {
-            spec: KarlsenGptWorkerSpec {
-                device_id:42,
-                model_path: String::new()
-            },
+            spec: KarlsenGptWorkerSpec { device_id: 42, model_path: String::new() },
             _enabled: true,
             //#[cfg(feature = "overclock")]
             //nvml_instance: Nvml::init()?,
@@ -60,7 +57,7 @@ impl Plugin for KarlsenGptPlugin {
     fn process_option(&mut self, matches: &ArgMatches) -> Result<usize, karlsen_miner::Error> {
         let opts: KarlsenGptOpt = KarlsenGptOpt::from_arg_matches(matches)?;
         println!("KarlsenGptPlugin - process_option");
-        
+
         let _model_path = opts.karlsengpt_model_path;
 
         //TODO: initialize the llama backend here
@@ -86,7 +83,7 @@ impl Plugin for KarlsenGptPlugin {
                 }
             };
 
-            
+
 
             self.specs = (0..gpus.len())
                 .map(|i| KarlsenGptWorkerSpec {
@@ -105,7 +102,6 @@ impl Plugin for KarlsenGptPlugin {
         Ok(self.specs.len())
     }
     */
-    
 }
 
 #[derive(Clone)]
@@ -123,10 +119,7 @@ impl WorkerSpec for KarlsenGptWorkerSpec {
 
     fn build(&self) -> Box<dyn Worker> {
         println!("KarlsenGptPlugin - build");
-        Box::new(
-            KarlsenGptGPUWorker::new(self.device_id, self.model_path.clone())
-                .unwrap(),
-        )
+        Box::new(KarlsenGptGPUWorker::new(self.device_id, self.model_path.clone()).unwrap())
     }
 }
 

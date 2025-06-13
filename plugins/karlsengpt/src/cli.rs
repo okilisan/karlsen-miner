@@ -1,8 +1,6 @@
 //use crate::Error;
 //use std::str::FromStr;
 
-
-
 #[derive(clap::Args, Debug, Clone)]
 pub struct KarlsenGptOpt {
     #[clap(long = "karlsengpt-disable", help = "Disable Karlsen GPT")]

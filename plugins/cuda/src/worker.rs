@@ -224,6 +224,12 @@ impl Worker for CudaGPUWorker {
         format!("#{} ({})", self.device_id, device.name().unwrap())
     }
 
+    fn compute_pouw(&self, _task: &String) -> Result<String, Error> {
+        error!("GPU Miner received PoUW task - this should never happen");
+        Ok(format!(""))
+        //format!("#{} ({})", self.device_id, device.name().unwrap())
+    }
+
     fn load_block_constants(&mut self, hash_header: &[u8; 72], target: &[u64; 4]) {
         let mut hash_header_gpu = self._module.get_global::<[u8; 72]>(&CString::new("hash_header").unwrap()).unwrap();
         hash_header_gpu.copy_from(hash_header).map_err(|e| e.to_string()).unwrap();

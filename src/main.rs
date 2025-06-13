@@ -195,6 +195,7 @@ async fn client_main(
     client.register().await?;
     let mut miner_manager = MinerManager::new(client.get_block_channel(), opt.num_threads, plugin_manager);
     client.listen(&mut miner_manager).await?;
+    info!("drop from main.rs");
     drop(miner_manager);
     Ok(())
 }

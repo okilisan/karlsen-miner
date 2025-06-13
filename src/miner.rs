@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::sleep;
 use std::time::Duration;
 
+use crate::proto::RpcPouwTask;
 use crate::{pow, watch, Error};
 use log::{error, info, warn};
 use rand::{rng, RngCore};
@@ -214,6 +215,11 @@ impl MinerManager {
         };
 
         self.block_channel.send(state).map_err(|_e| "Failed sending block to threads")?;
+        Ok(())
+    }
+
+    pub async fn process_pouw_task(&mut self, task: RpcPouwTask) -> Result<(), Error> {
+        info!("Miner processing pouw task: id={}, data={}", task.id, task.data);
         Ok(())
     }
 

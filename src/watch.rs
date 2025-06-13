@@ -1,3 +1,4 @@
+use log::info;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
@@ -99,6 +100,7 @@ impl<T: Clone> Sender<T> {
 
 impl<T: Clone> Drop for Sender<T> {
     fn drop(&mut self) {
+        info!("drop from watch.rs 3");
         // Mark sender as dropped
         self.shared.drop_sender();
         // Make sure all waiting receivers will unlock and see that the sender was dropped.
@@ -140,6 +142,7 @@ impl<T: Clone> Receiver<T> {
             return Ok(v);
         }
         // wait for a notification of a new value
+        info!("drop from watch.rs 2");
         drop(self.shared.notify_change.wait(lock));
         // Recheck if the sender is alive as it might've changed while waiting
         if !self.shared.sender_alive() {
@@ -159,6 +162,7 @@ impl<T: Clone> Clone for Receiver<T> {
 
 impl<T: Clone> Drop for Receiver<T> {
     fn drop(&mut self) {
+        info!("drop from watch.rs");
         self.shared.decrement_receivers_count();
     }
 }
