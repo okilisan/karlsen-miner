@@ -691,3 +691,14 @@ message RpcPouwTask {
   string data = 2;
 }
 
+// Miner submits the result of a Pouw task.
+message SubmitPouwResultRequestMessage {
+  string task_id = 1;
+  string data = 2;
+}
+
+message SubmitPouwResultResponseMessage {
+  bool accepted = 1;
+  RPCError error = 1000;
+}
+

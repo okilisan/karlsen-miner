@@ -138,6 +138,8 @@ message KarlsendMessage {
 
     GetPouwTaskRequestMessage getPouwTaskRequest = 2000;
     GetPouwTaskResponseMessage getPouwTaskResponse = 2001;
+    SubmitPouwResultRequestMessage submitPouwResultRequest = 2030;
+    SubmitPouwResultResponseMessage submitPouwResultResponse = 2031;
 
   }
 }

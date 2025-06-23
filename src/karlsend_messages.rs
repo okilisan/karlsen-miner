@@ -1,5 +1,6 @@
 use log::info;
 
+use crate::proto::SubmitPouwResultRequestMessage;
 use crate::proto::{
     karlsend_message::Payload, GetBlockTemplateRequestMessage, GetInfoRequestMessage, GetPouwTaskRequestMessage,
     KarlsendMessage, NotifyBlockAddedRequestMessage, NotifyNewBlockTemplateRequestMessage, RpcBlock,
@@ -66,6 +67,14 @@ impl From<GetPouwTaskRequestMessage> for KarlsendMessage {
     fn from(a: GetPouwTaskRequestMessage) -> Self {
         info!("GetPouwTaskRequestMessage payload: {:}", a.subnet);
         KarlsendMessage { payload: Some(Payload::GetPouwTaskRequest(a)) }
+    }
+}
+
+impl From<SubmitPouwResultRequestMessage> for KarlsendMessage {
+    #[inline(always)]
+    fn from(a: SubmitPouwResultRequestMessage) -> Self {
+        info!("SubmitPouwResultRequestMessage task_id: {:} - data: {:}", a.task_id, a.data);
+        KarlsendMessage { payload: Some(Payload::SubmitPouwResultRequest(a)) }
     }
 }
 

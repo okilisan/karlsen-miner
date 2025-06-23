@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::sleep;
 use std::time::Duration;
 
-use crate::proto::RpcPouwTask;
+use crate::proto::{KarlsendMessage, RpcPouwTask, SubmitPouwResultRequestMessage};
 use crate::{pow, watch, Error};
 use log::{error, info, warn};
 use rand::{rng, RngCore};
@@ -94,6 +94,7 @@ pub struct MinerManager {
     handles: Vec<MinerHandler>,
     block_channel: watch::Sender<Option<WorkerCommand>>,
     send_channel: Sender<BlockSeed>,
+    send_channel_pouw: Sender<KarlsendMessage>,
     logger_handle: JoinHandle<()>,
     is_synced: bool,
     hashes_tried: Arc<AtomicU64>,
@@ -133,7 +134,12 @@ pub fn get_num_cpus(n_cpus: Option<u16>) -> u16 {
 const LOG_RATE: Duration = Duration::from_secs(30);
 
 impl MinerManager {
-    pub fn new(send_channel: Sender<BlockSeed>, n_cpus: Option<u16>, manager: &PluginManager) -> Self {
+    pub fn new(
+        send_channel: Sender<BlockSeed>,
+        send_channel_pouw: Sender<KarlsendMessage>,
+        n_cpus: Option<u16>,
+        manager: &PluginManager,
+    ) -> Self {
         register_freeze_handler();
         let hashes_tried = Arc::new(AtomicU64::new(0));
         let hashes_by_worker = Arc::new(Mutex::new(HashMap::<String, Arc<AtomicU64>>::new()));
@@ -154,6 +160,7 @@ impl MinerManager {
             handles,
             block_channel: send,
             send_channel,
+            send_channel_pouw,
             logger_handle: task::spawn(Self::log_hashrate(Arc::clone(&hashes_tried), hashes_by_worker.clone())),
             is_synced: true,
             hashes_tried,
@@ -220,6 +227,14 @@ impl MinerManager {
 
     pub async fn process_pouw_task(&mut self, task: RpcPouwTask) -> Result<(), Error> {
         info!("Miner processing pouw task: id={}, data={}", task.id, task.data);
+        //self.send_channel.send(GetInfoRequestMessage {}.into()).await?;
+        if let Err(e) = self
+            .send_channel_pouw
+            .send(SubmitPouwResultRequestMessage { task_id: task.id, data: "validated".to_string() }.into())
+            .await
+        {
+            warn!("Failed to submit PoUW task request: {e}");
+        }
         Ok(())
     }
 

@@ -2,6 +2,7 @@ use futures::prelude::*;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::pin::Pin;
+use std::ptr::null;
 use std::sync::atomic::{AtomicU16, AtomicU32, AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -17,6 +18,7 @@ use crate::client::stratum::statum_codec::{
 use crate::client::Client;
 use crate::pow::BlockSeed;
 use crate::pow::BlockSeed::PartialBlock;
+use crate::proto::KarlsendMessage;
 use crate::{miner::MinerManager, Error, Uint256};
 use async_trait::async_trait;
 use futures_util::TryStreamExt;
@@ -81,6 +83,7 @@ pub struct StratumHandler {
 
     //client: Framed<TcpStream, NewLineJsonCodec>,
     send_channel: Sender<StratumLine>,
+    send_channel_pouw: Sender<KarlsendMessage>,
     stream: Pin<Box<dyn Stream<Item = Result<StratumLine, NewLineJsonCodecError>>>>,
     miner_address: String,
     mine_when_not_synced: bool,
@@ -172,6 +175,11 @@ impl Client for StratumHandler {
     fn get_block_channel(&self) -> Sender<BlockSeed> {
         self.block_channel.clone()
     }
+
+    fn get_pouw_channel(&self) -> Sender<KarlsendMessage> {
+        warn!("PoUW not implemented on Stratum");
+        self.send_channel_pouw.clone()
+    }
 }
 
 impl StratumHandler {
@@ -186,6 +194,7 @@ impl StratumHandler {
 
         let client = Framed::new(socket, NewLineJsonCodec::new());
         let (send_channel, recv) = mpsc::channel::<StratumLine>(3);
+        let (send_channel_pouw, recv_pouw) = mpsc::channel(2);
         let (sink, stream) = client.split();
         tokio::spawn(async move { ReceiverStream::new(recv).map(Ok).forward(sink).await });
 
@@ -208,6 +217,7 @@ impl StratumHandler {
             log_handler: task::spawn(Self::log_shares(share_state.clone())),
             stream: Box::pin(stream),
             send_channel,
+            send_channel_pouw,
             miner_address,
             mine_when_not_synced,
             devfund_address: None,

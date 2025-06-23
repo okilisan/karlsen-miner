@@ -193,7 +193,8 @@ async fn client_main(
         client.add_devfund(opt.devfund_address.clone(), opt.devfund_percent);
     }
     client.register().await?;
-    let mut miner_manager = MinerManager::new(client.get_block_channel(), opt.num_threads, plugin_manager);
+    let mut miner_manager =
+        MinerManager::new(client.get_block_channel(), client.get_pouw_channel(), opt.num_threads, plugin_manager);
     client.listen(&mut miner_manager).await?;
     info!("drop from main.rs");
     drop(miner_manager);

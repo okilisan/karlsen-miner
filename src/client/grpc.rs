@@ -65,6 +65,10 @@ impl Client for KarlsendHandler {
     fn get_block_channel(&self) -> Sender<BlockSeed> {
         self.block_channel.clone()
     }
+
+    fn get_pouw_channel(&self) -> Sender<KarlsendMessage> {
+        self.send_channel.clone()
+    }
 }
 
 impl KarlsendHandler {
